@@ -118,3 +118,8 @@ SIMPLE_JWT = {
 # CORS Settings
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF settings for Django Admin on Render
+CSRF_TRUSTED_ORIGINS = [
+    'https://retro-backend-pjlu.onrender.com',
+]

@@ -338,3 +338,18 @@ h1, h2, h3, h4, h5, h6, .font-header {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Kanban Board Columns */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+  width: 100%;
+}
+
+@media (max-width: 992px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
+}

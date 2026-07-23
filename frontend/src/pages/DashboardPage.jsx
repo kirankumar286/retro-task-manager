@@ -173,13 +173,15 @@ const DashboardPage = () => {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem 3rem 1rem' }}>
-      {/* Filter Bar */}
-      <FilterBar
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onReset={handleResetFilters}
-        onOpenCreateModal={handleOpenCreateModal}
-      />
+      {/* Centered Filter Bar */}
+      <div style={{ maxWidth: '850px', margin: '0 auto 2rem auto' }}>
+        <FilterBar
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onReset={handleResetFilters}
+          onOpenCreateModal={handleOpenCreateModal}
+        />
+      </div>
 
       {/* Error Notice */}
       {error && (
@@ -213,7 +215,7 @@ const DashboardPage = () => {
         </div>
       ) : (
         /* 3-Column Kanban Board Layout */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
+        <div className="kanban-board">
           {/* TO DO COLUMN */}
           <div
             onDragOver={(e) => handleDragOver(e, 'todo')}

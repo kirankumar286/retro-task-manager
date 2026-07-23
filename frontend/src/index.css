@@ -1,0 +1,340 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bg-dark: #0a0b10;
+  --bg-card: #121522;
+  --bg-panel: #181d2e;
+  --neon-cyan: #00f3ff;
+  --neon-cyan-dark: #008088;
+  --neon-pink: #ff007f;
+  --neon-pink-dark: #880044;
+  --neon-green: #00ff66;
+  --neon-amber: #ffb700;
+  --neon-red: #ff3366;
+  --text-main: #e2e8f0;
+  --text-muted: #8e9bb0;
+  --border-light: #00f3ff;
+  --border-dark: #00555a;
+  
+  --font-header: 'Press Start 2P', cursive, monospace;
+  --font-body: 'Share Tech Mono', 'Courier New', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  cursor: url('/cursor-retro.svg'), auto;
+}
+
+body, html {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* CRT Scanline & Screen Glow Effects */
+.crt-container {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.crt-scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+}
+
+.crt-vignette {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9998;
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.75);
+}
+
+/* Retro CRT Flicker Keyframes (Subtle) */
+@keyframes crt-flicker {
+  0% { opacity: 0.99; }
+  50% { opacity: 1; }
+  100% { opacity: 0.98; }
+}
+
+.crt-glow {
+  animation: crt-flicker 0.15s infinite;
+}
+
+/* Clickable elements get custom pointer cursor */
+a, button, select, input[type="checkbox"], input[type="submit"], .clickable {
+  cursor: url('/cursor-pointer.svg'), pointer !important;
+}
+
+/* Typography Helpers */
+h1, h2, h3, h4, h5, h6, .font-header {
+  font-family: var(--font-header);
+  letter-spacing: 1px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Chunky Retro 3D Bevel Card Component */
+.retro-card {
+  background-color: var(--bg-card);
+  border-top: 3px solid var(--neon-cyan);
+  border-left: 3px solid var(--neon-cyan);
+  border-bottom: 3px solid var(--neon-cyan-dark);
+  border-right: 3px solid var(--neon-cyan-dark);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.6), 0 0 12px rgba(0, 243, 255, 0.15);
+  padding: 1.5rem;
+  position: relative;
+}
+
+.retro-card-pink {
+  border-top-color: var(--neon-pink);
+  border-left-color: var(--neon-pink);
+  border-bottom-color: var(--neon-pink-dark);
+  border-right-color: var(--neon-pink-dark);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 0, 127, 0.15);
+}
+
+/* Chunky Retro 3D Bevel Buttons */
+.retro-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-header);
+  font-size: 0.75rem;
+  padding: 0.65rem 1.25rem;
+  background-color: var(--bg-panel);
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+  border-top: 3px solid var(--neon-cyan);
+  border-left: 3px solid var(--neon-cyan);
+  border-bottom: 3px solid var(--neon-cyan-dark);
+  border-right: 3px solid var(--neon-cyan-dark);
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.5);
+  transition: all 0.08s ease-in-out;
+  user-select: none;
+  text-decoration: none;
+}
+
+.retro-btn:hover {
+  background-color: var(--neon-cyan);
+  color: var(--bg-dark);
+  box-shadow: 0 0 15px rgba(0, 243, 255, 0.8), 3px 3px 0px rgba(0, 0, 0, 0.7);
+  transform: translateY(-1px);
+}
+
+.retro-btn:active {
+  border-top: 3px solid var(--neon-cyan-dark);
+  border-left: 3px solid var(--neon-cyan-dark);
+  border-bottom: 3px solid var(--neon-cyan);
+  border-right: 3px solid var(--neon-cyan);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
+}
+
+.retro-btn-pink {
+  color: var(--neon-pink);
+  border-top-color: var(--neon-pink);
+  border-left-color: var(--neon-pink);
+  border-bottom-color: var(--neon-pink-dark);
+  border-right-color: var(--neon-pink-dark);
+}
+
+.retro-btn-pink:hover {
+  background-color: var(--neon-pink);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.8), 3px 3px 0px rgba(0, 0, 0, 0.7);
+}
+
+.retro-btn-green {
+  color: var(--neon-green);
+  border-top-color: var(--neon-green);
+  border-left-color: var(--neon-green);
+  border-bottom-color: #008837;
+  border-right-color: #008837;
+}
+
+.retro-btn-green:hover {
+  background-color: var(--neon-green);
+  color: var(--bg-dark);
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.8), 3px 3px 0px rgba(0, 0, 0, 0.7);
+}
+
+.retro-btn-red {
+  color: var(--neon-red);
+  border-top-color: var(--neon-red);
+  border-left-color: var(--neon-red);
+  border-bottom-color: #880022;
+  border-right-color: #880022;
+}
+
+.retro-btn-red:hover {
+  background-color: var(--neon-red);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.8), 3px 3px 0px rgba(0, 0, 0, 0.7);
+}
+
+.retro-btn-sm {
+  font-size: 0.65rem;
+  padding: 0.4rem 0.75rem;
+}
+
+/* Retro Form Inputs */
+.retro-input {
+  width: 100%;
+  background-color: #06070a;
+  color: var(--neon-cyan);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 0.75rem;
+  border: 2px solid var(--neon-cyan-dark);
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.8);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.retro-input:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.9), 0 0 8px rgba(0, 243, 255, 0.5);
+}
+
+.retro-select {
+  width: 100%;
+  background-color: #06070a;
+  color: var(--neon-cyan);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 0.75rem;
+  border: 2px solid var(--neon-cyan-dark);
+  box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.8);
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2300f3ff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem top 50%;
+  background-size: 0.85rem auto;
+}
+
+.retro-select:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+}
+
+.retro-label {
+  display: block;
+  font-family: var(--font-header);
+  font-size: 0.65rem;
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+/* Retro Badges */
+.retro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-header);
+  font-size: 0.6rem;
+  padding: 0.25rem 0.5rem;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+
+.badge-todo {
+  color: var(--neon-amber);
+  border-color: var(--neon-amber);
+  background-color: rgba(255, 183, 0, 0.1);
+}
+
+.badge-in_progress {
+  color: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+  background-color: rgba(0, 243, 255, 0.1);
+}
+
+.badge-done {
+  color: var(--neon-green);
+  border-color: var(--neon-green);
+  background-color: rgba(0, 255, 102, 0.1);
+}
+
+.badge-prio-high {
+  color: var(--neon-red);
+  border-color: var(--neon-red);
+  background-color: rgba(255, 51, 102, 0.15);
+}
+
+.badge-prio-medium {
+  color: var(--neon-amber);
+  border-color: var(--neon-amber);
+  background-color: rgba(255, 183, 0, 0.15);
+}
+
+.badge-prio-low {
+  color: var(--text-muted);
+  border-color: var(--text-muted);
+  background-color: rgba(142, 155, 176, 0.15);
+}
+
+/* Modal Backdrop */
+.retro-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(6, 7, 10, 0.85);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 1rem;
+}
+
+/* Mobile Responsiveness Rules */
+@media (max-width: 768px) {
+  .retro-btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.65rem;
+    width: 100%;
+  }
+  .retro-card {
+    padding: 1rem;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+  .filter-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

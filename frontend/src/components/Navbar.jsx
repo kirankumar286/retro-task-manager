@@ -11,7 +11,7 @@ const Navbar = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Terminal color="#00f3ff" size={28} />
           <div>
-            <h1 style={{ fontSize: '1.2rem', margin: 0 }}>RETRO_TASK v1.0</h1>
+            <h1 style={{ fontSize: '1.2rem', margin: 0 }}>⚡ Tasky 👾</h1>
             <div style={{ fontSize: '0.75rem', color: 'var(--neon-green)', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem' }}>
               <ShieldCheck size={14} /> SYS_STATUS: ONLINE
             </div>

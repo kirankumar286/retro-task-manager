@@ -168,17 +168,109 @@ const DashboardPage = () => {
           </button>
         </div>
       ) : (
-        /* Task Cards Grid */
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
-          {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onEdit={handleOpenEditModal}
-              onDelete={setTaskToDelete}
-              onStatusToggle={handleStatusToggle}
-            />
-          ))}
+        /* 3-Column Kanban Board Layout */
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
+          {/* TO DO COLUMN */}
+          <div className="retro-card" style={{ padding: '1.25rem', background: 'rgba(10, 11, 16, 0.6)', borderColor: 'var(--neon-cyan)' }}>
+            <h3 style={{
+              color: 'var(--neon-cyan)',
+              borderBottom: '2px solid var(--neon-cyan)',
+              paddingBottom: '0.75rem',
+              marginBottom: '1.25rem',
+              fontSize: '0.85rem',
+              textAlign: 'center',
+              fontFamily: 'var(--font-header)',
+              textShadow: '0 0 5px var(--neon-cyan)',
+              letterSpacing: '1px'
+            }}>
+              TO DO ({tasks.filter(t => t.status === 'todo').length})
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '150px' }}>
+              {tasks.filter(t => t.status === 'todo').length === 0 ? (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem 0', fontSize: '0.9rem', border: '1px dashed var(--border-dark)', borderRadius: '4px' }}>
+                  [EMPTY_SECTOR]
+                </div>
+              ) : (
+                tasks.filter(t => t.status === 'todo').map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onEdit={handleOpenEditModal}
+                    onDelete={setTaskToDelete}
+                    onStatusToggle={handleStatusToggle}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* IN PROGRESS COLUMN */}
+          <div className="retro-card" style={{ padding: '1.25rem', background: 'rgba(10, 11, 16, 0.6)', borderColor: 'var(--neon-amber)' }}>
+            <h3 style={{
+              color: 'var(--neon-amber)',
+              borderBottom: '2px solid var(--neon-amber)',
+              paddingBottom: '0.75rem',
+              marginBottom: '1.25rem',
+              fontSize: '0.85rem',
+              textAlign: 'center',
+              fontFamily: 'var(--font-header)',
+              textShadow: '0 0 5px var(--neon-amber)',
+              letterSpacing: '1px'
+            }}>
+              IN PROGRESS ({tasks.filter(t => t.status === 'in_progress').length})
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '150px' }}>
+              {tasks.filter(t => t.status === 'in_progress').length === 0 ? (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem 0', fontSize: '0.9rem', border: '1px dashed var(--border-dark)', borderRadius: '4px' }}>
+                  [EMPTY_SECTOR]
+                </div>
+              ) : (
+                tasks.filter(t => t.status === 'in_progress').map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onEdit={handleOpenEditModal}
+                    onDelete={setTaskToDelete}
+                    onStatusToggle={handleStatusToggle}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* COMPLETED COLUMN */}
+          <div className="retro-card" style={{ padding: '1.25rem', background: 'rgba(10, 11, 16, 0.6)', borderColor: 'var(--neon-green)' }}>
+            <h3 style={{
+              color: 'var(--neon-green)',
+              borderBottom: '2px solid var(--neon-green)',
+              paddingBottom: '0.75rem',
+              marginBottom: '1.25rem',
+              fontSize: '0.85rem',
+              textAlign: 'center',
+              fontFamily: 'var(--font-header)',
+              textShadow: '0 0 5px var(--neon-green)',
+              letterSpacing: '1px'
+            }}>
+              COMPLETED ({tasks.filter(t => t.status === 'done').length})
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '150px' }}>
+              {tasks.filter(t => t.status === 'done').length === 0 ? (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem 0', fontSize: '0.9rem', border: '1px dashed var(--border-dark)', borderRadius: '4px' }}>
+                  [EMPTY_SECTOR]
+                </div>
+              ) : (
+                tasks.filter(t => t.status === 'done').map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    onEdit={handleOpenEditModal}
+                    onDelete={setTaskToDelete}
+                    onStatusToggle={handleStatusToggle}
+                  />
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
 

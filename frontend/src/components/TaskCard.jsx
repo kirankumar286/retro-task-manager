@@ -46,7 +46,21 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusToggle }) => {
   };
 
   return (
-    <div className={`retro-card ${task.status === 'done' ? 'retro-card-pink' : ''}`} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+    <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData('taskId', task.id);
+        e.dataTransfer.setData('currentStatus', task.status);
+      }}
+      className={`retro-card ${task.status === 'done' ? 'retro-card-pink' : ''}`}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        height: '100%',
+        cursor: 'grab'
+      }}
+    >
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>

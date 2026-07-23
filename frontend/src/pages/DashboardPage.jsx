@@ -5,11 +5,13 @@ import TaskCard from '../components/TaskCard';
 import TaskModal from '../components/TaskModal';
 import ConfirmModal from '../components/ConfirmModal';
 import { Gamepad2, AlertCircle, Sparkles } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 const DashboardPage = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dragOverColumn, setDragOverColumn] = useState(null);
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -127,6 +129,48 @@ const DashboardPage = () => {
     }
   };
 
+  // Drag and Drop Handlers
+  const handleDragOver = (e, columnStatus) => {
+    e.preventDefault();
+    setDragOverColumn(columnStatus);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverColumn(null);
+  };
+
+  const handleDrop = async (e, targetStatus) => {
+    e.preventDefault();
+    setDragOverColumn(null);
+    const taskId = e.dataTransfer.getData('taskId');
+    const currentStatus = e.dataTransfer.getData('currentStatus');
+
+    if (taskId && currentStatus !== targetStatus) {
+      // Optimistic state update
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id.toString() === taskId.toString() ? { ...t, status: targetStatus } : t
+        )
+      );
+
+      if (targetStatus === 'done') {
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.7 },
+          colors: ['#00f3ff', '#00ff66', '#ff007f']
+        });
+      }
+
+      try {
+        await api.patch(`/api/tasks/${taskId}/`, { status: targetStatus });
+      } catch (err) {
+        alert('Failed to update task status.');
+        fetchTasks();
+      }
+    }
+  };
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem 3rem 1rem' }}>
       {/* Filter Bar */}
@@ -171,7 +215,19 @@ const DashboardPage = () => {
         /* 3-Column Kanban Board Layout */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
           {/* TO DO COLUMN */}
-          <div className="retro-card" style={{ padding: '1.25rem', background: 'rgba(10, 11, 16, 0.6)', borderColor: 'var(--neon-cyan)' }}>
+          <div
+            onDragOver={(e) => handleDragOver(e, 'todo')}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, 'todo')}
+            className="retro-card"
+            style={{
+              padding: '1.25rem',
+              background: dragOverColumn === 'todo' ? 'rgba(0, 243, 255, 0.05)' : 'rgba(10, 11, 16, 0.6)',
+              borderColor: dragOverColumn === 'todo' ? 'var(--neon-cyan)' : 'var(--neon-cyan)',
+              borderStyle: dragOverColumn === 'todo' ? 'dashed' : 'solid',
+              transition: 'all 0.2s ease-in-out'
+            }}
+          >
             <h3 style={{
               color: 'var(--neon-cyan)',
               borderBottom: '2px solid var(--neon-cyan)',
@@ -205,7 +261,19 @@ const DashboardPage = () => {
           </div>
 
           {/* IN PROGRESS COLUMN */}
-          <div className="retro-card" style={{ padding: '1.25rem', background: 'rgba(10, 11, 16, 0.6)', borderColor: 'var(--neon-amber)' }}>
+          <div
+            onDragOver={(e) => handleDragOver(e, 'in_progress')}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, 'in_progress')}
+            className="retro-card"
+            style={{
+              padding: '1.25rem',
+              background: dragOverColumn === 'in_progress' ? 'rgba(255, 183, 0, 0.05)' : 'rgba(10, 11, 16, 0.6)',
+              borderColor: dragOverColumn === 'in_progress' ? 'var(--neon-amber)' : 'var(--neon-amber)',
+              borderStyle: dragOverColumn === 'in_progress' ? 'dashed' : 'solid',
+              transition: 'all 0.2s ease-in-out'
+            }}
+          >
             <h3 style={{
               color: 'var(--neon-amber)',
               borderBottom: '2px solid var(--neon-amber)',
@@ -239,7 +307,19 @@ const DashboardPage = () => {
           </div>
 
           {/* COMPLETED COLUMN */}
-          <div className="retro-card" style={{ padding: '1.25rem', background: 'rgba(10, 11, 16, 0.6)', borderColor: 'var(--neon-green)' }}>
+          <div
+            onDragOver={(e) => handleDragOver(e, 'done')}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, 'done')}
+            className="retro-card"
+            style={{
+              padding: '1.25rem',
+              background: dragOverColumn === 'done' ? 'rgba(0, 255, 102, 0.05)' : 'rgba(10, 11, 16, 0.6)',
+              borderColor: dragOverColumn === 'done' ? 'var(--neon-green)' : 'var(--neon-green)',
+              borderStyle: dragOverColumn === 'done' ? 'dashed' : 'solid',
+              transition: 'all 0.2s ease-in-out'
+            }}
+          >
             <h3 style={{
               color: 'var(--neon-green)',
               borderBottom: '2px solid var(--neon-green)',

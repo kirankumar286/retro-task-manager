@@ -13,7 +13,11 @@ export const AuthProvider = ({ children }) => {
   const fetchProfile = useCallback(async () => {
     try {
       const response = await api.get('/api/users/profile/');
-      setProfile(response.data);
+      if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+        setProfile(response.data);
+      } else {
+        console.error('Invalid profile data type received:', response.data);
+      }
     } catch (err) {
       console.error('Failed to load profile', err);
     }

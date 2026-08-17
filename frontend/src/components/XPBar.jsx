@@ -9,15 +9,21 @@ const XPBar = ({ profile }) => {
     return (l - 1) * 100 + (l - 2) * (l - 1) * 25;
   };
 
-  const prevThreshold = getPrevThreshold(profile.level);
-  const totalInLevel = profile.next_level_xp - prevThreshold;
-  const currentInLevel = profile.xp - prevThreshold;
-  const percent = Math.max(0, Math.min(100, (currentInLevel / (totalInLevel || 1)) * 100));
+  const level = typeof profile.level === 'number' ? profile.level : 1;
+  const xp = typeof profile.xp === 'number' ? profile.xp : 0;
+  const next_level_xp = typeof profile.next_level_xp === 'number' ? profile.next_level_xp : 100;
+
+  const prevThreshold = getPrevThreshold(level);
+  const totalInLevel = next_level_xp - prevThreshold;
+  const currentInLevel = xp - prevThreshold;
+  const rawPercent = (currentInLevel / (totalInLevel || 1)) * 100;
+  const percent = isNaN(rawPercent) ? 0 : Math.max(0, Math.min(100, rawPercent));
 
   // Retro block bar generation (e.g. 15 blocks total)
   const totalBlocks = 15;
   const activeBlocks = Math.round((percent / 100) * totalBlocks);
-  const blockString = '█'.repeat(activeBlocks) + '░'.repeat(totalBlocks - activeBlocks);
+  const safeActiveBlocks = isNaN(activeBlocks) || activeBlocks < 0 ? 0 : Math.min(totalBlocks, activeBlocks);
+  const blockString = '█'.repeat(safeActiveBlocks) + '░'.repeat(totalBlocks - safeActiveBlocks);
 
   return (
     <div 

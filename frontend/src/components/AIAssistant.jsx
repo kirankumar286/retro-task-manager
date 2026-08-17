@@ -104,7 +104,6 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     }
   }, []);
 
-  if (!isOpen) return null;
 
   const handleStartListening = () => {
     if (recognition) {
@@ -282,6 +281,8 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
       handleAbort();
     }
   }, [isOpen, resetAssistant, handleAbort]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="retro-modal-backdrop" onClick={onClose}>

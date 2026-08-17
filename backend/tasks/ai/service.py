@@ -24,12 +24,12 @@ class AIService:
             # Fallback to local heuristic parser if API key is not configured
             return cls.fallback_heuristic_parser(user_input, now)
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
         
         # Construct system prompt with date context
-        sys_prompt = SYSTEM_PROMPT.format(current_reference=current_reference)
-        user_prompt = USER_PROMPT_TEMPLATE.format(user_input=user_input)
+        sys_prompt = SYSTEM_PROMPT.replace('{current_reference}', current_reference)
+        user_prompt = USER_PROMPT_TEMPLATE.replace('{user_input}', user_input)
         
         payload = {
             "contents": [

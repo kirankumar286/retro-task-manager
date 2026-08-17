@@ -418,5 +418,16 @@ h1, h2, h3, h4, h5, h6, .font-header {
   .sidebar-desktop {
     display: none;
   }
+  .mobile-sidebar-trigger-container {
+    display: block !important;
+  }
+  .action-buttons-container {
+    flex-direction: column;
+    width: 100%;
+  }
+  .action-buttons-container button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
 }
 

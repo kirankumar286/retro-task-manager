@@ -3,6 +3,10 @@ from django.urls import reverse
 from rest_framework import status
 from tasks.models import Task, MissionProposal
 
+@pytest.fixture(autouse=True)
+def mock_empty_api_key(settings):
+    settings.GEMINI_API_KEY = ""
+
 @pytest.mark.django_db
 class TestAIEndpoints:
     def test_unauthenticated_user_cannot_access_classify(self, api_client):

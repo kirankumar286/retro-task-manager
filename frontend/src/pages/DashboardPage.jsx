@@ -274,7 +274,7 @@ const DashboardPage = () => {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }} className="dashboard-grid">
+      <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', width: '100%' }} className="dashboard-grid">
         
         {/* Left Category Sidebar */}
         <CategorySidebar

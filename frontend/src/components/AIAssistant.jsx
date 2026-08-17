@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Mic, Send, AlertOctagon, HelpCircle, Loader2 } from 'lucide-react';
 import api from '../services/api';
 
@@ -144,7 +144,7 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     }
   };
 
-  const handleAbort = () => {
+  const handleAbort = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
@@ -154,7 +154,7 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
       simTimersRef.current = [];
     }
     setStatus('idle');
-  };
+  }, []);
 
   const startLogSimulation = (isVoice = false, voiceText = '') => {
     setProgressPercent(0);
@@ -268,12 +268,12 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     }
   };
 
-  const resetAssistant = () => {
+  const resetAssistant = useCallback(() => {
     setInputText('');
     setStatus('idle');
     setErrorMsg('');
     setAiResult(null);
-  };
+  }, []);
 
   useEffect(() => {
     if (isOpen) {

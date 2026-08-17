@@ -44,7 +44,7 @@ class AIService:
         }
         
         try:
-            response = requests.post(url, headers=headers, json=payload, timeout=15)
+            response = requests.post(url, headers=headers, json=payload, timeout=4)
             response.raise_for_status()
             res_data = response.json()
             

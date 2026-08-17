@@ -261,7 +261,7 @@ const DashboardPage = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 1rem 3rem 1rem' }}>
+    <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', padding: '0 1rem 3rem 1rem' }}>
       
       {/* Mobile Category Sidebar Trigger */}
       <div style={{ display: 'none', marginBottom: '1rem' }} className="mobile-sidebar-trigger-container">

@@ -136,6 +136,16 @@ const DashboardPage = () => {
     fetchCategories();
   }, [fetchProposals, fetchCategories]);
 
+  useEffect(() => {
+    const handleNavSettings = () => {
+      handleSelectSettings();
+    };
+    window.addEventListener('navigate-to-settings', handleNavSettings);
+    return () => {
+      window.removeEventListener('navigate-to-settings', handleNavSettings);
+    };
+  }, []);
+
   const handleXPAward = (xp, leveledUp) => {
     confetti({
       particleCount: 85,

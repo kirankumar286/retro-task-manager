@@ -23,10 +23,34 @@ const Navbar = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
             <XPBar profile={profile} />
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#0a0b10', padding: '0.4rem 0.8rem', border: '1px solid var(--neon-cyan-dark)' }}>
+            <button 
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('navigate-to-settings'));
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: '#0a0b10',
+                padding: '0.4rem 0.8rem',
+                border: '1px solid var(--neon-cyan-dark)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 0.15s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--neon-cyan)';
+                e.currentTarget.style.boxShadow = '0 0 5px var(--neon-cyan)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--neon-cyan-dark)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+              title="Open System Settings"
+            >
               <User size={16} color="#ff007f" />
               <span style={{ fontSize: '0.85rem', color: 'var(--neon-cyan)' }}>{user.username}</span>
-            </div>
+            </button>
 
             <button 
               onClick={logout} 

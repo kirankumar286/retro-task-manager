@@ -164,7 +164,7 @@ class AIChatView(APIView):
             return Response({'detail': 'Prompt is required.'}, status=status.HTTP_400_BAD_REQUEST)
             
         # Call AI service via classifier
-        intent, ai_data = AIClassifier.classify_intent(prompt)
+        intent, ai_data = AIClassifier.classify_intent(prompt, user=request.user)
         
         if intent == 'create_task':
             task_info = ai_data.get('task', {})
@@ -209,6 +209,28 @@ class AIChatView(APIView):
                 proposed_tasks=mission_info.get('tasks', []),
                 status='pending'
             )
+            
+            # Auto-approval check based on settings
+            if hasattr(request.user, 'profile') and request.user.profile.auto_approve_proposals:
+                proposal.status = 'approved'
+                proposal.save()
+                for task_info in proposal.proposed_tasks:
+                    Task.objects.create(
+                        owner=request.user,
+                        title=task_info.get('title', 'AI Subtask'),
+                        description=task_info.get('description', ''),
+                        category=task_info.get('category', 'other'),
+                        priority=task_info.get('priority', 'medium'),
+                        status='todo',
+                        due_date=task_info.get('due_date'),
+                        due_time=task_info.get('due_time')
+                    )
+                return Response({
+                    'intent': 'create_mission_auto_approved',
+                    'proposal': MissionProposalSerializer(proposal).data,
+                    'message': 'Mission proposal auto-approved and subtasks created.'
+                }, status=status.HTTP_201_CREATED)
+                
             return Response({
                 'intent': 'create_mission',
                 'proposal': MissionProposalSerializer(proposal).data
@@ -222,6 +244,14 @@ class UserProfileView(APIView):
     def get(self, request):
         profile, created = UserProfile.objects.get_or_create(user=request.user)
         return Response(UserProfileSerializer(profile).data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer

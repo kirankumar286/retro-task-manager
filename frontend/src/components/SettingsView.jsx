@@ -1,0 +1,162 @@
+import React, { useState, useEffect } from 'react';
+import { Settings, Save, AlertTriangle, ShieldCheck, Cpu } from 'lucide-react';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+
+const SettingsView = () => {
+  const { profile, fetchProfile } = useAuth();
+  const [formData, setFormData] = useState({
+    ai_model: 'gemini-3.5-flash',
+    auto_approve_proposals: false,
+  });
+  const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        ai_model: profile.ai_model || 'gemini-3.5-flash',
+        auto_approve_proposals: !!profile.auto_approve_proposals,
+      });
+    }
+  }, [profile]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setSuccessMsg('');
+    setErrorMsg('');
+    try {
+      await api.patch('/api/profile/', formData);
+      await fetchProfile();
+      setSuccessMsg('SYSTEM_SETTINGS_SAVED_SUCCESSFULLY');
+      setTimeout(() => setSuccessMsg(''), 4000);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('SETTINGS_WRITE_ERROR: File access denied or invalid params.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="retro-card" style={{ maxWidth: '640px', margin: '1rem auto 2rem auto', padding: '2rem' }}>
+      <div style={{ borderBottom: '2px solid var(--neon-cyan)', paddingBottom: '0.75rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <Settings size={22} color="var(--neon-cyan)" />
+        <h2 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-header)', letterSpacing: '1px' }}>
+          ⚙️ TASKY_SETTINGS // AI_COGNITIVE_CORE
+        </h2>
+      </div>
+
+      {successMsg && (
+        <div style={{ backgroundColor: 'rgba(0, 255, 102, 0.15)', border: '1px solid var(--neon-green)', color: 'var(--neon-green)', padding: '0.75rem', marginBottom: '1.5rem', fontSize: '0.8rem', fontFamily: 'monospace' }} className="flash-pulse">
+          [SUCCESS] {successMsg}
+        </div>
+      )}
+
+      {errorMsg && (
+        <div style={{ backgroundColor: 'rgba(255, 51, 102, 0.15)', border: '1px solid var(--neon-red)', color: 'var(--neon-red)', padding: '0.75rem', marginBottom: '1.5rem', fontSize: '0.8rem', fontFamily: 'monospace' }}>
+          [ERROR] {errorMsg}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Model Selection */}
+        <div>
+          <label className="retro-label" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+            <Cpu size={14} color="var(--neon-cyan)" /> ACTIVE AI MODEL
+          </label>
+          <select
+            value={formData.ai_model}
+            onChange={(e) => setFormData({ ...formData, ai_model: e.target.value })}
+            className="retro-select"
+            style={{ width: '100%' }}
+          >
+            <option value="gemini-3.5-flash">Gemini 3.5 Flash (Optimized for speed & multi-step plans)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fast reasoning & balanced coding)</option>
+            <option value="gemini-3.6-flash">Gemini 3.6 Flash (Frontier reasoning preview)</option>
+            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Low-latency workhorse)</option>
+            <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (High efficiency core)</option>
+          </select>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.4rem' }}>
+            Routing is performed dynamically inside the backend. Make sure your configured api key has remaining token credits for the selected cognitive engine.
+          </p>
+        </div>
+
+        {/* Checkbox Options */}
+        <div style={{ border: '1px dashed var(--neon-cyan-dark)', padding: '1rem', backgroundColor: '#05070e' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={formData.auto_approve_proposals}
+              onChange={(e) => setFormData({ ...formData, auto_approve_proposals: e.target.checked })}
+              style={{
+                width: '18px',
+                height: '18px',
+                accentColor: 'var(--neon-cyan)',
+                cursor: 'pointer'
+              }}
+            />
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>
+              Enable AI Proposal Auto-Approval
+            </span>
+          </label>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.4rem', paddingLeft: '2rem' }}>
+            If checked, multi-step mission proposals generated by Speech or Text will bypass the Approvals Queue and automatically create tasks directly onto your board.
+          </p>
+        </div>
+
+        {/* Dev System Info */}
+        <div style={{ border: '1px solid #1a2238', padding: '1rem', backgroundColor: '#020306', fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          <div style={{ color: 'var(--neon-cyan)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <ShieldCheck size={12} /> HARDWARE STATE INFORMATION
+          </div>
+          <div>CORE_VERSION: Tasky v2.0-STABLE</div>
+          <div>DATABASE: SQLite Core v3 / DRF REST API</div>
+          <div>GAMIFICATION: Lvl {profile?.level || 1} / {profile?.xp || 0} XP</div>
+          <div>STREAK: {profile?.current_streak || 0} active / {profile?.longest_streak || 0} max</div>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="retro-btn retro-btn-green"
+            style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '180px' }}
+          >
+            {loading ? (
+              <>
+                <Loader2 size={16} className="spin" /> SAVING...
+              </>
+            ) : (
+              <>
+                <Save size={16} /> SAVE SETTINGS
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+
+      <style>{`
+        .spin {
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .flash-pulse {
+          animation: flash-pulse 1s infinite alternate;
+        }
+        @keyframes flash-pulse {
+          0% { opacity: 0.8; }
+          100% { opacity: 1; text-shadow: 0 0 5px var(--neon-green); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default SettingsView;

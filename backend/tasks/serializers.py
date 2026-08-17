@@ -81,11 +81,23 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ('id', 'username', 'xp', 'level', 'current_streak', 'longest_streak', 'next_level_xp')
+        fields = ('id', 'username', 'xp', 'level', 'current_streak', 'longest_streak', 'next_level_xp', 'ai_model', 'auto_approve_proposals')
 
     def get_next_level_xp(self, obj):
         next_lvl = obj.level + 1
         return (next_lvl - 1) * 100 + (next_lvl - 2) * (next_lvl - 1) * 25
+
+    def validate_ai_model(self, value):
+        valid_models = {
+            'gemini-3.5-flash',
+            'gemini-2.5-flash',
+            'gemini-3.6-flash',
+            'gemini-2.5-flash-lite',
+            'gemini-3.1-flash-lite'
+        }
+        if value not in valid_models:
+            raise serializers.ValidationError(f"Invalid AI Model choice: {value}")
+        return value
 
 class CategorySerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')

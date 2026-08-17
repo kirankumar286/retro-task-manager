@@ -12,7 +12,7 @@ class AIService:
         return getattr(settings, 'GEMINI_API_KEY', os.getenv('GEMINI_API_KEY', ''))
 
     @classmethod
-    def analyze_input(cls, user_input, user_timezone='UTC'):
+    def analyze_input(cls, user_input, user_timezone='UTC', user=None):
         """Sends the user input to Gemini API or runs heuristic fallback if offline/no key."""
         api_key = cls.get_api_key()
         
@@ -24,7 +24,12 @@ class AIService:
             # Fallback to local heuristic parser if API key is not configured
             return cls.fallback_heuristic_parser(user_input, now)
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
+        # Dynamic AI model routing based on user profile settings
+        model_name = 'gemini-3.5-flash'
+        if user and hasattr(user, 'profile'):
+            model_name = user.profile.ai_model
+            
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
         
         # Construct system prompt with date context

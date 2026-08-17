@@ -87,6 +87,8 @@ class UserProfile(models.Model):
     current_streak = models.IntegerField(default=0)
     longest_streak = models.IntegerField(default=0)
     last_completion_date = models.DateField(null=True, blank=True)
+    ai_model = models.CharField(max_length=50, default='gemini-3.5-flash')
+    auto_approve_proposals = models.BooleanField(default=False)
 
     def calculate_level(self):
         xp = self.xp

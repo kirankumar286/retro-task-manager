@@ -12,6 +12,8 @@ const CategorySidebar = ({
   onSelectApprovals,
   selectedAchievements,
   onSelectAchievements,
+  selectedSettings,
+  onSelectSettings,
   onAddCategory,
   onDeleteCategory,
   onTogglePinCategory,
@@ -47,6 +49,11 @@ const CategorySidebar = ({
 
   const handleAchievementsClick = () => {
     onSelectAchievements();
+    if (onClose) onClose();
+  };
+
+  const handleSettingsClick = () => {
+    onSelectSettings();
     if (onClose) onClose();
   };
 
@@ -317,6 +324,41 @@ const CategorySidebar = ({
               }}
             >
               <span>🏆</span> ACHIEVEMENTS
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div style={{ borderTop: '1px dashed var(--neon-cyan-dark)', margin: '0.2rem 0' }}></div>
+
+      {/* System Settings */}
+      <div>
+        <h2 style={{ fontSize: '0.8rem', color: 'var(--neon-cyan)', borderBottom: '2px solid var(--neon-cyan-dark)', paddingBottom: '0.4rem', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          ⚙️ SYSTEM
+        </h2>
+        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.3rem', padding: 0, margin: 0 }}>
+          <li>
+            <button
+              onClick={handleSettingsClick}
+              className={`retro-sidebar-btn ${selectedSettings ? 'active' : ''}`}
+              style={{
+                width: '100%',
+                textAlign: 'left',
+                background: 'none',
+                border: 'none',
+                padding: '0.5rem 0.75rem',
+                color: selectedSettings ? 'var(--neon-cyan)' : 'var(--text-main)',
+                fontFamily: 'var(--font-body)',
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                borderRadius: '2px',
+                transition: 'all 0.15s'
+              }}
+            >
+              <span>⚙️</span> SETTINGS
             </button>
           </li>
         </ul>

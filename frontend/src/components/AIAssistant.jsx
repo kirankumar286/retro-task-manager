@@ -11,6 +11,9 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
   const [progressPercent, setProgressPercent] = useState(0);
   const [logLines, setLogLines] = useState([]);
   
+  const abortControllerRef = useRef(null);
+  const simTimersRef = useRef([]);
+  
   // Speech Recognition setup (Web Speech API)
   const [recognition, setRecognition] = useState(null);
   const [recognitionType, setRecognitionType] = useState(null);
@@ -22,6 +25,14 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
       logTerminalRef.current.scrollTop = logTerminalRef.current.scrollHeight;
     }
   }, [logLines]);
+
+  useEffect(() => {
+    if (isOpen) {
+      resetAssistant();
+    } else {
+      handleAbort();
+    }
+  }, [isOpen]);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -137,6 +148,18 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     }
   };
 
+  const handleAbort = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (simTimersRef.current) {
+      simTimersRef.current.forEach(clearTimeout);
+      simTimersRef.current = [];
+    }
+    setStatus('idle');
+  };
+
   const startLogSimulation = (isVoice = false, voiceText = '') => {
     setProgressPercent(0);
     setLogLines([]);
@@ -168,6 +191,7 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
       }, step.delay);
       timers.push(timer);
     });
+    simTimersRef.current = timers;
 
     return {
       timers,
@@ -199,12 +223,20 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     setErrorMsg('');
     setAiResult(null);
 
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     const logController = startLogSimulation(isVoice, promptToSend);
     
     try {
       const response = await api.post('/api/ai/classify/', {
         prompt: promptToSend,
         force: force
+      }, {
+        signal: abortController.signal
       });
       
       const data = response.data;
@@ -222,6 +254,9 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
         if (onMissionPlanned) onMissionPlanned();
       }
     } catch (err) {
+      if (err.name === 'CanceledError' || err.message === 'canceled') {
+        return;
+      }
       const errMsg = err.response?.data?.detail || 'AI_MATRIX_DECODE_FAILED: Could not parse input.';
       logController.complete(false, errMsg);
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -397,6 +432,11 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
                   </div>
                 ))}
               </div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.25rem' }}>
+                <button type="button" onClick={handleAbort} className="retro-btn retro-btn-red retro-btn-sm" style={{ width: 'auto' }}>
+                  [ ABORT PIPELINE ]
+                </button>
+              </div>
             </div>
           )}
 
@@ -454,10 +494,10 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
               )}
 
               {/* Scenario 3: Complex Mission Created */}
-              {aiResult.intent === 'create_mission' && (
+              {(aiResult.intent === 'create_mission' || aiResult.intent === 'create_mission_auto_approved') && (
                 <div style={{ textAlign: 'center', padding: '1rem 0' }}>
                   <div style={{ color: 'var(--neon-pink)', fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 'bold' }}>
-                    MISSION DETECTED
+                    {aiResult.intent === 'create_mission_auto_approved' ? '✓ MISSION AUTO-APPROVED' : 'MISSION DETECTED'}
                   </div>
                   <div className="retro-card" style={{ display: 'inline-block', padding: '1.25rem', backgroundColor: '#090a12', textAlign: 'left', minWidth: '280px', marginBottom: '1.5rem' }}>
                     <strong style={{ color: 'var(--neon-pink)', fontSize: '0.95rem' }}>{aiResult.proposal?.goal}</strong>
@@ -466,7 +506,7 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
                     </div>
                   </div>
                   <div style={{ color: 'var(--neon-cyan)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                    → SENT TO APPROVAL QUEUE
+                    {aiResult.intent === 'create_mission_auto_approved' ? '→ SUBTASKS CREATED ON BOARD' : '→ SENT TO APPROVAL QUEUE'}
                   </div>
                   <button onClick={resetAssistant} className="retro-btn" style={{ width: 'auto' }}>
                     [ DISMISS ]

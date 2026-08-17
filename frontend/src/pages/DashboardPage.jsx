@@ -9,6 +9,7 @@ import CategorySidebar from '../components/CategorySidebar';
 import AIAssistant from '../components/AIAssistant';
 import ApprovalQueue from '../components/ApprovalQueue';
 import AchievementsView from '../components/AchievementsView';
+import SettingsView from '../components/SettingsView';
 import { Gamepad2, AlertCircle, Sparkles, Menu } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -42,6 +43,7 @@ const DashboardPage = () => {
   const [approvals, setApprovals] = useState([]);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [settingsActive, setSettingsActive] = useState(false);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -161,6 +163,7 @@ const DashboardPage = () => {
     }));
     setApprovalsActive(false);
     setAchievementsActive(false);
+    setSettingsActive(false);
   };
 
   const handleSelectSmartFilter = (sfKey) => {
@@ -171,16 +174,26 @@ const DashboardPage = () => {
     }));
     setApprovalsActive(false);
     setAchievementsActive(false);
+    setSettingsActive(false);
   };
 
   const handleSelectApprovals = () => {
     setApprovalsActive(true);
     setAchievementsActive(false);
+    setSettingsActive(false);
   };
 
   const handleSelectAchievements = () => {
     setAchievementsActive(true);
     setApprovalsActive(false);
+    setSettingsActive(false);
+  };
+
+  const handleSelectSettings = () => {
+    setSettingsActive(true);
+    setApprovalsActive(false);
+    setAchievementsActive(false);
+    setFilters((prev) => ({ ...prev, category: '', smartFilter: '' }));
   };
 
   const handleResetFilters = () => {
@@ -196,6 +209,7 @@ const DashboardPage = () => {
     });
     setApprovalsActive(false);
     setAchievementsActive(false);
+    setSettingsActive(false);
   };
 
   // Open Create Modal
@@ -334,6 +348,8 @@ const DashboardPage = () => {
           onSelectApprovals={handleSelectApprovals}
           selectedAchievements={achievementsActive}
           onSelectAchievements={handleSelectAchievements}
+          selectedSettings={settingsActive}
+          onSelectSettings={handleSelectSettings}
           onAddCategory={handleAddCategory}
           onDeleteCategory={handleDeleteCategory}
           onTogglePinCategory={handleTogglePinCategory}
@@ -345,7 +361,7 @@ const DashboardPage = () => {
         <div style={{ flex: 1, minWidth: 0 }} className="board-container">
           
           {/* Centered Filter Bar */}
-          {!approvalsActive && !achievementsActive && (
+          {!approvalsActive && !achievementsActive && !settingsActive && (
             <FilterBar
               filters={filters}
               onFilterChange={handleFilterChange}
@@ -364,8 +380,10 @@ const DashboardPage = () => {
             </div>
           )}
 
-          {/* Loading State */}
-          {loading ? (
+          {/* Render Active View */}
+          {settingsActive ? (
+            <SettingsView />
+          ) : loading ? (
             <div style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--neon-cyan)' }}>
               <Gamepad2 size={48} className="crt-glow" style={{ marginBottom: '1rem' }} />
               <h3 style={{ fontSize: '1rem' }}>LOADING_TASK_MATRIX...</h3>

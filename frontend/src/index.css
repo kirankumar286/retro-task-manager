@@ -305,6 +305,20 @@ h1, h2, h3, h4, h5, h6, .font-header {
   background-color: rgba(142, 155, 176, 0.15);
 }
 
+.badge-prio-urgent {
+  color: var(--neon-red);
+  border-color: var(--neon-red);
+  background-color: rgba(255, 51, 102, 0.2);
+  font-weight: bold;
+  box-shadow: 0 0 5px var(--neon-red);
+}
+
+.badge-category {
+  color: var(--neon-cyan);
+  border-color: var(--neon-cyan-dark);
+  background-color: rgba(0, 243, 255, 0.08);
+}
+
 /* Modal Backdrop */
 .retro-modal-backdrop {
   position: fixed;
@@ -353,3 +367,56 @@ h1, h2, h3, h4, h5, h6, .font-header {
     grid-template-columns: 1fr;
   }
 }
+
+/* Retro Sidebar Button Styles */
+.retro-sidebar-btn {
+  border: 1px solid transparent !important;
+  text-decoration: none;
+}
+
+.retro-sidebar-btn:hover {
+  background-color: rgba(0, 243, 255, 0.05) !important;
+  border-color: var(--neon-cyan-dark) !important;
+  color: var(--neon-cyan) !important;
+  box-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
+}
+
+.retro-sidebar-btn.active {
+  background-color: rgba(0, 243, 255, 0.1) !important;
+  border-color: var(--neon-cyan) !important;
+  color: var(--neon-cyan) !important;
+  box-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+  font-weight: bold;
+}
+
+.retro-sidebar-btn.active-pink {
+  background-color: rgba(255, 0, 127, 0.1) !important;
+  border-color: var(--neon-pink) !important;
+  color: var(--neon-pink) !important;
+  box-shadow: 0 0 8px rgba(255, 0, 127, 0.5);
+  font-weight: bold;
+}
+
+.retro-sidebar-btn.active-amber {
+  background-color: rgba(255, 183, 0, 0.1) !important;
+  border-color: var(--neon-amber) !important;
+  color: var(--neon-amber) !important;
+  box-shadow: 0 0 8px rgba(255, 183, 0, 0.5);
+  font-weight: bold;
+}
+
+.retro-sidebar-btn:hover svg {
+  transform: scale(1.1);
+  transition: transform 0.15s ease;
+}
+
+.sidebar-desktop {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .sidebar-desktop {
+    display: none;
+  }
+}
+

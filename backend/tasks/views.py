@@ -8,10 +8,12 @@ from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from .models import Task
-from .serializers import UserRegistrationSerializer, UserSerializer, TaskSerializer
+from .models import Task, MissionProposal, UserProfile
+from .serializers import UserRegistrationSerializer, UserSerializer, TaskSerializer, MissionProposalSerializer, UserProfileSerializer
 from .permissions import IsOwner
 from .filters import TaskFilter
+from .ai.classifier import AIClassifier
+from .ai.planner import AIPlanner
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -62,3 +64,161 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        old_status = instance.status
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        task = serializer.save()
+        new_status = task.status
+        
+        xp_awarded = 0
+        leveled_up = False
+        if new_status == 'done' and old_status != 'done':
+            profile, _ = UserProfile.objects.get_or_create(user=request.user)
+            xp_awarded, leveled_up = profile.award_xp_for_task(task)
+            
+        data = serializer.data
+        if xp_awarded > 0:
+            data['xp_awarded'] = xp_awarded
+            data['leveled_up'] = leveled_up
+            
+        return Response(data)
+
+from rest_framework.decorators import action
+
+class MissionProposalViewSet(viewsets.ModelViewSet):
+    serializer_class = MissionProposalSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return MissionProposal.objects.none()
+        return MissionProposal.objects.filter(owner=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        proposal = self.get_object()
+        
+        # Idempotency validation
+        if proposal.status != 'pending':
+            return Response({
+                'detail': f'Proposal has already been {proposal.status}.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Mark as approved
+        proposal.status = 'approved'
+        proposal.save()
+        
+        created_tasks = []
+        for task_info in proposal.proposed_tasks:
+            # Create actual tasks in the database
+            task = Task.objects.create(
+                owner=request.user,
+                title=task_info.get('title', 'AI Subtask'),
+                description=task_info.get('description', ''),
+                category=task_info.get('category', 'other'),
+                priority=task_info.get('priority', 'medium'),
+                status='todo',
+                due_date=task_info.get('due_date'),
+                due_time=task_info.get('due_time')
+            )
+            created_tasks.append(TaskSerializer(task).data)
+            
+        return Response({
+            'status': 'approved',
+            'tasks': created_tasks,
+            'message': 'Mission tasks generated successfully.'
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        proposal = self.get_object()
+        
+        if proposal.status != 'pending':
+            return Response({
+                'detail': f'Proposal has already been {proposal.status}.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        proposal.status = 'rejected'
+        proposal.save()
+        return Response({
+            'status': 'rejected',
+            'message': 'Mission proposal rejected.'
+        }, status=status.HTTP_200_OK)
+
+class AIChatView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        prompt = request.data.get('prompt', '').strip()
+        force = request.data.get('force', False)
+        
+        if not prompt:
+            return Response({'detail': 'Prompt is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Call AI service via classifier
+        intent, ai_data = AIClassifier.classify_intent(prompt)
+        
+        if intent == 'create_task':
+            task_info = ai_data.get('task', {})
+            title = task_info.get('title', '').strip()
+            
+            # Duplicate check
+            existing_active_task = Task.objects.filter(
+                owner=request.user,
+                title__iexact=title
+            ).exclude(status='done').first()
+            
+            if existing_active_task and not force:
+                return Response({
+                    'intent': 'duplicate_warning',
+                    'task': task_info
+                }, status=status.HTTP_200_OK)
+                
+            # Create task directly
+            task = Task.objects.create(
+                owner=request.user,
+                title=title,
+                description=task_info.get('description', ''),
+                category=task_info.get('category', 'other'),
+                priority=task_info.get('priority', 'medium'),
+                status='todo',
+                due_date=task_info.get('due_date'),
+                due_time=task_info.get('due_time')
+            )
+            return Response({
+                'intent': 'create_task',
+                'task': TaskSerializer(task).data
+            }, status=status.HTTP_201_CREATED)
+            
+        elif intent == 'create_mission':
+            mission_info = ai_data.get('mission', {})
+            
+            # Create MissionProposal
+            proposal = MissionProposal.objects.create(
+                owner=request.user,
+                goal=mission_info.get('goal', prompt),
+                original_input=prompt,
+                proposed_tasks=mission_info.get('tasks', []),
+                status='pending'
+            )
+            return Response({
+                'intent': 'create_mission',
+                'proposal': MissionProposalSerializer(proposal).data
+            }, status=status.HTTP_201_CREATED)
+            
+        return Response({'detail': 'Invalid AI intent determined.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+        return Response(UserProfileSerializer(profile).data, status=status.HTTP_200_OK)

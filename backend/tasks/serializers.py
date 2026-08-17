@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils import timezone
-from .models import Task
+from .models import Task, MissionProposal, UserProfile
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -41,7 +41,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ('id', 'title', 'description', 'status', 'priority', 'due_date', 'owner', 'created_at', 'updated_at')
+        fields = ('id', 'title', 'description', 'status', 'priority', 'category', 'due_date', 'due_time', 'owner', 'created_at', 'updated_at')
         read_only_fields = ('id', 'owner', 'created_at', 'updated_at')
 
     def validate_title(self, value):
@@ -55,3 +55,23 @@ class TaskSerializer(serializers.ModelSerializer):
             if self.instance is None and value < timezone.now().date():
                 raise serializers.ValidationError("Due date cannot be in the past on creation.")
         return value
+
+class MissionProposalSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+
+    class Meta:
+        model = MissionProposal
+        fields = ('id', 'owner', 'goal', 'original_input', 'proposed_tasks', 'status', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'owner', 'created_at', 'updated_at')
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.ReadOnlyField(source='user.username')
+    next_level_xp = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserProfile
+        fields = ('id', 'username', 'xp', 'level', 'current_streak', 'longest_streak', 'next_level_xp')
+
+    def get_next_level_xp(self, obj):
+        next_lvl = obj.level + 1
+        return (next_lvl - 1) * 100 + (next_lvl - 2) * (next_lvl - 1) * 25

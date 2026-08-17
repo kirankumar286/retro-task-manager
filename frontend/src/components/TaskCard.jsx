@@ -17,6 +17,8 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusToggle }) => {
 
   const getPriorityBadge = (priority) => {
     switch (priority) {
+      case 'urgent':
+        return <span className="retro-badge badge-prio-urgent">💀 URGENT</span>;
       case 'high':
         return <span className="retro-badge badge-prio-high">⚡ HIGH</span>;
       case 'medium':
@@ -25,6 +27,21 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusToggle }) => {
       default:
         return <span className="retro-badge badge-prio-low">▼ LOW</span>;
     }
+  };
+
+  const getCategoryLabel = (category) => {
+    const labels = {
+      work: '💼 WORK',
+      personal: '👤 PERSONAL',
+      groceries: '🛒 GROCERIES',
+      errands: '🏃 ERRANDS',
+      study: '📚 STUDY',
+      health: '❤️ HEALTH',
+      finance: '💰 FINANCE',
+      home: '🏠 HOME',
+      other: '📦 OTHER',
+    };
+    return labels[category] || '📦 OTHER';
   };
 
   const handleToggle = () => {
@@ -63,13 +80,14 @@ const TaskCard = ({ task, onEdit, onDelete, onStatusToggle }) => {
     >
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
             {getStatusBadge(task.status)}
             {getPriorityBadge(task.priority)}
+            <span className="retro-badge badge-category">{getCategoryLabel(task.category)}</span>
           </div>
           {task.due_date && (
             <span style={{ fontSize: '0.75rem', color: 'var(--neon-cyan)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <Calendar size={12} /> {task.due_date}
+              <Calendar size={12} /> {task.due_date}{task.due_time ? ` · ${task.due_time.substring(0, 5)}` : ''}
             </span>
           )}
         </div>

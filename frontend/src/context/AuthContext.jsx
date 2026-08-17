@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import api from '../services/api';
 
 const AuthContext = createContext();
@@ -8,6 +8,17 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [profile, setProfile] = useState(null);
+
+  const fetchProfile = useCallback(async () => {
+    try {
+      const response = await api.get('/api/users/profile/');
+      setProfile(response.data);
+    } catch (err) {
+      console.error('Failed to load profile', err);
+    }
+  }, []);
+
   useEffect(() => {
     // Check if user session exists on initial load
     const storedUser = localStorage.getItem('user');
@@ -15,12 +26,13 @@ export const AuthProvider = ({ children }) => {
     if (storedUser && storedToken) {
       try {
         setUser(JSON.parse(storedUser));
+        fetchProfile();
       } catch (e) {
         localStorage.clear();
       }
     }
     setLoading(false);
-  }, []);
+  }, [fetchProfile]);
 
   const login = async (username, password) => {
     setError(null);
@@ -31,6 +43,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('refresh_token', refresh);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+      fetchProfile();
       return { success: true };
     } catch (err) {
       const msg = err.response?.data?.detail || err.response?.data?.non_field_errors?.[0] || 'Login failed. Check your credentials.';
@@ -48,6 +61,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('refresh_token', refresh);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+      fetchProfile();
       return { success: true };
     } catch (err) {
       let msg = 'Registration failed.';
@@ -66,10 +80,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
     setUser(null);
+    setProfile(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, setError, login, register, logout }}>
+    <AuthContext.Provider value={{ user, profile, fetchProfile, loading, error, setError, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

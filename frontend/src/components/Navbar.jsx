@@ -1,9 +1,10 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, Terminal, User, ShieldCheck } from 'lucide-react';
+import XPBar from './XPBar';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
 
   return (
     <header className="retro-card" style={{ borderRadius: 0, marginBottom: '2rem', padding: '1rem 1.5rem' }}>
@@ -19,7 +20,9 @@ const Navbar = () => {
         </div>
 
         {user && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+            <XPBar profile={profile} />
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#0a0b10', padding: '0.4rem 0.8rem', border: '1px solid var(--neon-cyan-dark)' }}>
               <User size={16} color="#ff007f" />
               <span style={{ fontSize: '0.85rem', color: 'var(--neon-cyan)' }}>{user.username}</span>

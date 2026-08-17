@@ -7,7 +7,9 @@ const TaskModal = ({ isOpen, onClose, onSave, taskToEdit }) => {
     description: '',
     status: 'todo',
     priority: 'medium',
+    category: 'other',
     due_date: '',
+    due_time: '',
   });
 
   const [error, setError] = useState(null);
@@ -19,7 +21,9 @@ const TaskModal = ({ isOpen, onClose, onSave, taskToEdit }) => {
         description: taskToEdit.description || '',
         status: taskToEdit.status || 'todo',
         priority: taskToEdit.priority || 'medium',
+        category: taskToEdit.category || 'other',
         due_date: taskToEdit.due_date || '',
+        due_time: taskToEdit.due_time || '',
       });
     } else {
       setFormData({
@@ -27,7 +31,9 @@ const TaskModal = ({ isOpen, onClose, onSave, taskToEdit }) => {
         description: '',
         status: 'todo',
         priority: 'medium',
+        category: 'other',
         due_date: '',
+        due_time: '',
       });
     }
     setError(null);
@@ -121,6 +127,28 @@ const TaskModal = ({ isOpen, onClose, onSave, taskToEdit }) => {
             </div>
 
             <div>
+              <label className="retro-label">Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                className="retro-select"
+              >
+                <option value="work">💼 Work</option>
+                <option value="personal">👤 Personal</option>
+                <option value="groceries">🛒 Groceries</option>
+                <option value="errands">🏃 Errands</option>
+                <option value="study">📚 Study</option>
+                <option value="health">❤️ Health</option>
+                <option value="finance">💰 Finance</option>
+                <option value="home">🏠 Home</option>
+                <option value="other">📦 Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div>
               <label className="retro-label">Priority</label>
               <select
                 name="priority"
@@ -131,17 +159,29 @@ const TaskModal = ({ isOpen, onClose, onSave, taskToEdit }) => {
                 <option value="low">🟢 Low</option>
                 <option value="medium">🟡 Medium</option>
                 <option value="high">🔴 High</option>
+                <option value="urgent">💀 Urgent</option>
               </select>
+            </div>
+
+            <div>
+              <label className="retro-label">Due Date</label>
+              <input
+                type="date"
+                name="due_date"
+                value={formData.due_date}
+                onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                className="retro-input"
+              />
             </div>
           </div>
 
           <div>
-            <label className="retro-label">Due Date</label>
+            <label className="retro-label">Due Time</label>
             <input
-              type="date"
-              name="due_date"
-              value={formData.due_date}
-              onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+              type="time"
+              name="due_time"
+              value={formData.due_time}
+              onChange={(e) => setFormData({ ...formData, due_time: e.target.value })}
               className="retro-input"
             />
           </div>

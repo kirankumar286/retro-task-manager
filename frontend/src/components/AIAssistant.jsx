@@ -4,18 +4,30 @@ import api from '../services/api';
 
 const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
   const [inputText, setInputText] = useState('');
-  const [status, setStatus] = useState('idle'); // idle | listening | processing | result | error
+  const [status, setStatus] = useState('idle'); // idle | listening | listening_to_type | processing | result | error
   const [errorMsg, setErrorMsg] = useState('');
   const [aiResult, setAiResult] = useState(null); // stores task_data or proposal_data
   const [originalPrompt, setOriginalPrompt] = useState('');
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [logLines, setLogLines] = useState([]);
   
   // Speech Recognition setup (Web Speech API)
   const [recognition, setRecognition] = useState(null);
+  const [recognitionType, setRecognitionType] = useState(null);
+
+  const logTerminalRef = useRef(null);
+
+  useEffect(() => {
+    if (logTerminalRef.current) {
+      logTerminalRef.current.scrollTop = logTerminalRef.current.scrollHeight;
+    }
+  }, [logLines]);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
+        // Immediate Execution Mode
         const rec = new SpeechRecognition();
         rec.continuous = false;
         rec.interimResults = false;
@@ -33,7 +45,6 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
         };
         
         rec.onend = () => {
-          // If we didn't transit to processing, reset to idle
           setStatus(current => current === 'listening' ? 'idle' : current);
         };
         
@@ -41,10 +52,48 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
           const transcript = e.results[0][0].transcript;
           setInputText(transcript);
           setStatus('processing');
-          handleExecute(transcript);
+          handleExecute(transcript, false, true);
         };
         
         setRecognition(rec);
+
+        // Dictation (Speak-to-Type) Mode
+        const recType = new SpeechRecognition();
+        recType.continuous = true;
+        recType.interimResults = true;
+        recType.lang = 'en-US';
+        
+        recType.onstart = () => {
+          setStatus('listening_to_type');
+          setErrorMsg('');
+        };
+        
+        recType.onerror = (e) => {
+          console.error(e);
+          setStatus('idle');
+          setErrorMsg('AUDIO_RECOGNITION_ERROR: Failed to dictate speech.');
+        };
+        
+        recType.onend = () => {
+          setStatus(current => current === 'listening_to_type' ? 'idle' : current);
+        };
+        
+        recType.onresult = (e) => {
+          let interimTranscript = '';
+          let finalTranscript = '';
+          for (let i = e.resultIndex; i < e.results.length; ++i) {
+            if (e.results[i].isFinal) {
+              finalTranscript += e.results[i][0].transcript + ' ';
+            } else {
+              interimTranscript += e.results[i][0].transcript;
+            }
+          }
+          if (finalTranscript) {
+            setInputText(prev => prev + finalTranscript);
+          }
+        };
+        
+        setRecognitionType(recType);
       }
     }
   }, []);
@@ -70,7 +119,74 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     }
   };
 
-  const handleExecute = async (overridePrompt = null, force = false) => {
+  const handleStartListeningToType = () => {
+    if (recognitionType) {
+      try {
+        recognitionType.start();
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      setErrorMsg('SYS_AUDIO_FAILURE: Web Speech API is not supported in this browser.');
+    }
+  };
+
+  const handleStopListeningToType = () => {
+    if (recognitionType) {
+      recognitionType.stop();
+      setStatus('idle');
+    }
+  };
+
+  const startLogSimulation = (isVoice = false, voiceText = '') => {
+    setProgressPercent(0);
+    setLogLines([]);
+
+    const startTime = Date.now();
+    const addLog = (text) => {
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      setLogLines(prev => [...prev, `[${elapsed}s] ${text}`]);
+    };
+
+    addLog("[SYSTEM] INITIALIZING CORE AUDIO PIPELINE ENGINE...");
+    addLog(isVoice ? `[AUDIO] CAPTURED VOICE TRANSCRIPT: "${voiceText}"` : `[INPUT] TYPED CMD OBJECTIVE: "${voiceText}"`);
+
+    const steps = [
+      { delay: 100, pct: 15, text: "[SYSTEM] ALLOCATING RUNTIME MATRIX HEAP..." },
+      { delay: 400, pct: 30, text: "[SYS_CORE] ROUTING PROTOCOL TO COGNITIVE PORT 8000..." },
+      { delay: 850, pct: 45, text: "[AI_GATEWAY] ESTABLISHING SECURE HANDSHAKE WITH GEMINI 3.5 FLASH..." },
+      { delay: 1350, pct: 60, text: "[AI_CORE] PROCESSING Intent Classification (create_task vs create_mission)..." },
+      { delay: 1950, pct: 75, text: "[CLASSIFY] IDENTIFYING Category, Priority AND Target Deadlines..." },
+      { delay: 2450, pct: 88, text: "[SCHEMA] VALIDATING JSON MATCH RULES & OUTPUT SCHEMA SECURITY CODES..." },
+      { delay: 2950, pct: 95, text: "[GAMIFICATION] RESOLVING User Profile XP Event Increments..." },
+    ];
+
+    const timers = [];
+    steps.forEach(step => {
+      const timer = setTimeout(() => {
+        addLog(step.text);
+        setProgressPercent(step.pct);
+      }, step.delay);
+      timers.push(timer);
+    });
+
+    return {
+      timers,
+      complete: (success = true, finalDetail = '') => {
+        timers.forEach(clearTimeout);
+        setProgressPercent(100);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const statusText = success ? `[SUCCESS] AI MATRIX RESOLVED: ${finalDetail}` : `[FAILED] PIPELINE ERRORED: ${finalDetail}`;
+        setLogLines(prev => [
+          ...prev,
+          `[${elapsed}s] ${statusText}`,
+          `[${elapsed}s] TERMINAL WORKSPACE DE-ALLOCATED. SHUTTING DOWN.`
+        ]);
+      }
+    };
+  };
+
+  const handleExecute = async (overridePrompt = null, force = false, isVoice = false) => {
     const promptToSend = (overridePrompt || inputText).trim();
     if (!promptToSend) return;
     
@@ -78,6 +194,8 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     setStatus('processing');
     setErrorMsg('');
     setAiResult(null);
+
+    const logController = startLogSimulation(isVoice, promptToSend);
     
     try {
       const response = await api.post('/api/ai/classify/', {
@@ -86,6 +204,11 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
       });
       
       const data = response.data;
+      logController.complete(true, `Intent Classified: '${data.intent}'`);
+      
+      // Delay transition to display log details
+      await new Promise(resolve => setTimeout(resolve, 800));
+
       setAiResult(data);
       setStatus('result');
       
@@ -95,8 +218,12 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
         if (onMissionPlanned) onMissionPlanned();
       }
     } catch (err) {
+      const errMsg = err.response?.data?.detail || 'AI_MATRIX_DECODE_FAILED: Could not parse input.';
+      logController.complete(false, errMsg);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       setStatus('error');
-      setErrorMsg(err.response?.data?.detail || 'AI_MATRIX_DECODE_FAILED: Could not parse input.');
+      setErrorMsg(errMsg);
     }
   };
 
@@ -131,33 +258,62 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
         </div>
 
         {/* Console Body */}
-        <div style={{ background: '#030408', border: '1px solid var(--neon-pink-dark)', padding: '1.5rem', minHeight: '220px', fontFamily: 'var(--font-body)', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ background: '#030408', border: '1px solid var(--neon-pink-dark)', padding: '1.5rem', minHeight: '260px', fontFamily: 'var(--font-body)', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           
           {/* IDLE STATE */}
-          {status === 'idle' && (
+          {(status === 'idle' || status === 'listening_to_type') && (
             <div style={{ textAlign: 'center' }}>
               <div style={{ color: 'var(--neon-pink)', fontSize: '1.1rem', marginBottom: '1rem' }} className="crt-glow">
                 [ READY_FOR_COMMAND ]
               </div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
                 "Tell me what you need to accomplish..."
               </p>
-              <textarea
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Type your objective (e.g. 'I need to buy milk' or 'I need to launch my portfolio by Monday')"
-                className="retro-input"
-                style={{ borderColor: 'var(--neon-pink-dark)', color: 'var(--neon-pink)', height: '80px', resize: 'none', marginBottom: '1rem' }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleExecute();
-                  }
-                }}
-              />
+              
+              {/* Relative input area with embedded dictate microphone */}
+              <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                <textarea
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="Type your objective (e.g. 'I need to buy milk' or 'I need to launch my portfolio by Monday')"
+                  className="retro-input"
+                  style={{ borderColor: 'var(--neon-pink-dark)', color: 'var(--neon-pink)', height: '100px', resize: 'none', paddingRight: '2.5rem' }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleExecute();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={status === 'listening_to_type' ? handleStopListeningToType : handleStartListeningToType}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '10px',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: status === 'listening_to_type' ? 'var(--neon-red)' : 'var(--neon-pink)',
+                    transition: 'all 0.15s'
+                  }}
+                  className={status === 'listening_to_type' ? 'flash-pulse' : ''}
+                  title={status === 'listening_to_type' ? 'Stop dictating' : 'Dictate (Speak to Type)'}
+                >
+                  <Mic size={18} />
+                </button>
+              </div>
+
+              {status === 'listening_to_type' && (
+                <div style={{ color: 'var(--neon-red)', fontSize: '0.75rem', marginBottom: '1rem' }} className="flash-pulse">
+                  🎙️ DICTATING IN REAL-TIME... SPEAK NOW AND CLICK MIC AGAIN TO END.
+                </div>
+              )}
+
               <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
                 <button onClick={handleStartListening} className="retro-btn retro-btn-pink" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Mic size={14} /> 🎙️ SPEAK
+                  <Mic size={14} /> 🎙️ SPEAK TO RUN
                 </button>
                 <button onClick={() => handleExecute()} className="retro-btn retro-btn-green" style={{ width: 'auto', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Send size={14} /> EXECUTE
@@ -192,16 +348,51 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
             </div>
           )}
 
-          {/* PROCESSING STATE */}
+          {/* PROCESSING STATE (INTERACTIVE REALTIME LOGGER) */}
           {status === 'processing' && (
-            <div style={{ textAlign: 'center', padding: '1.5rem 0' }}>
-              <Loader2 size={36} color="var(--neon-pink)" className="spin" style={{ margin: '0 auto 1.25rem auto' }} />
-              <div style={{ color: 'var(--neon-pink)', fontSize: '1rem', marginBottom: '0.5rem' }}>
-                PROCESSING INPUT...
+            <div style={{ textAlign: 'left', width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                <div style={{ color: 'var(--neon-pink)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Loader2 size={16} className="spin" />
+                  <span>CLASSIFYING TASK PARAMS & SCHEMA...</span>
+                </div>
+                <span style={{ color: 'var(--neon-pink)', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                  {progressPercent}%
+                </span>
               </div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                CLASSIFYING TASK PARAMS & SCHEMA...
-              </p>
+              
+              {/* Progress Bar */}
+              <div style={{ width: '100%', height: '12px', border: '1px solid var(--neon-pink-dark)', backgroundColor: '#020306', marginBottom: '1.25rem', position: 'relative' }}>
+                <div style={{ 
+                  width: `${progressPercent}%`, 
+                  height: '100%', 
+                  backgroundColor: 'var(--neon-pink)', 
+                  boxShadow: '0 0 8px var(--neon-pink)',
+                  transition: 'width 0.15s ease-out'
+                }}></div>
+              </div>
+
+              {/* Debug Log Terminal */}
+              <div 
+                style={{ 
+                  backgroundColor: '#010204', 
+                  border: '1px dashed var(--neon-pink-dark)', 
+                  padding: '0.75rem', 
+                  fontFamily: 'monospace', 
+                  fontSize: '0.75rem', 
+                  color: 'var(--neon-cyan)', 
+                  height: '130px', 
+                  overflowY: 'auto',
+                  textShadow: '0 0 2px rgba(0, 243, 255, 0.4)'
+                }}
+                ref={logTerminalRef}
+              >
+                {logLines.map((line, idx) => (
+                  <div key={idx} style={{ marginBottom: '0.2rem', lineHeight: '1.25' }}>
+                    {line}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

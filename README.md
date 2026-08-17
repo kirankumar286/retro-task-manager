@@ -1,103 +1,133 @@
-# 🕹️ Tasky — Retro Task Manager (Beginner-Friendly Guide)
+# 🕹️ TASKY 2.0 — AI MISSION CONTROL RETRO-ARCADE SYSTEM
 
-Welcome to **Tasky**! 👾 
-
-If you only know the basics of coding, this guide is written just for you. It explains how this entire app works from front to back, using simple words and clear analogies.
-
-If you are a developer looking for the raw commands, configuration settings, or testing suites, check out the [Advanced Developer README](file:///f:/Projects/README_DEV.md).
+Welcome to **Tasky 2.0**! 👾 
+Tasky 2.0 is a next-generation productivity hub that transforms task management into a 90s cyber-arcade game. It features a fully responsive neon-cyberpunk visual design, custom AI model analysis, voice integration, dynamic categories, and real-time gamification.
 
 ---
 
-## 💡 The "Arcade Machine" Analogy (How it all fits together)
-Imagine this project is like a 90s Arcade Machine:
+## 🚀 Key Upgrades in Tasky 2.0
 
-1. **The Frontend (React)**: This is the **arcade cabinet screen and control buttons**. It displays the flashing neon lights, the columns, and buttons you click. It doesn't store data; it only captures your clicks and shows things on the screen.
-2. **The Backend (Django REST Framework)**: This is the **computer processor inside the arcade cabinet**. When you click a button on the screen, the screen sends a signal to the processor. The processor decides if you are allowed to make a move (security check) and processes the math.
-3. **The Database (PostgreSQL)**: This is the **high-score memory chip**. It stores the data permanently so that when you turn the machine off and on, your tasks and account are still there.
+### 1. 👾 AI Mission Control (Gemini 3.5 Flash Integration)
+Tasky 2.0 connects directly to the **Google Gemini 3.5 Flash** model to analyze raw user objectives and structure them into actionable plans.
+*   **Simple Intent (`create_task`)**: If you type or speak a basic request like *"I need to buy milk tomorrow by 4 PM"*, the AI automatically parses the target title, extracts context details, sets the category to `groceries`, sets priority to `high`, and calculates the relative target deadline.
+*   **Complex Intent (`create_mission`)**: If you enter a large goal like *"Prepare for React exam"*, the AI breaks down the plan into a multi-step mission proposal, listing subtasks, step-by-step descriptions, and targeted categories, and submits it to your **Approval Queue** for verification.
+*   **Realtime Debug Log Console & Percentage Tracker**: When analyzing prompts, a custom-designed terminal overlay opens in the frontend, simulating real-time system log sequences and loading status percentage metrics (0% to 100%) in a retro command-line aesthetic.
+
+### 2. 🎙️ Dual Voice Pipeline (Dictate vs. Execute)
+Integrating the browser's Web Speech Recognition API, Tasky 2.0 supports two voice-activated features:
+*   **Speak to Run (`🎙️ SPEAK TO RUN`)**: Captures speech, automatically submits the transcript directly to the AI model, executes the parser, and adds the tasks to your board instantly.
+*   **Speak to Type (`🎙️ Dictate`)**: Located directly inside the input textarea box. It appends your speech to the text field in real-time as you talk, allowing you to edit the prompt before executing.
+
+### 3. 🏆 Gamification Engine (XP, Levels, and Streaks)
+Tasky 2.0 turns productivity into a game:
+*   **XP Rewards**: Completing tasks awards experience points (XP) based on task priority (25 XP for medium, 50 XP for high, 100 XP for urgent).
+*   **Milestones & Level-Up**: Automatically triggers flashing Level-up animations and canvas-confetti explosions on crossing level thresholds.
+*   **Streak Trackers**: Automatically counts consecutive days with completed tasks, logging and preserving your longest streak achievements.
+
+### 4. 📂 Dynamic Categories & Smart Filters
+*   **Dynamic Categories**: Fully user-customizable. Create custom categories with custom icons/emojis, delete them, or click pin (`📌`) to lock them at the top of your sidebar list.
+*   **Safety Fallback**: Deleting a category updates any tasks inside it to the system default `'other'` category, ensuring zero broken filters.
+*   **Smart Filters**: Quick-views for `IMPORTANT` (high/urgent priority), `DUE TODAY`, and `OVERDUE` tasks.
 
 ---
 
-## 📂 Project Structure Made Simple
+## 🛠️ Technology Stack
 
-Here is how the project folders are laid out:
+### Frontend Architecture
+*   **Core**: React (built with Vite)
+*   **Styling**: Vanilla CSS featuring CRT scanline screen effects, neon glow dropshadows, glassmorphic card containers, and cyber-arcade visual theme.
+*   **State & Routing**: React Context API, custom hooks, and state-bound views.
+*   **HTTP Client**: Axios (configured with request and response interceptors to automatically attach JWT headers and handle token refreshing).
+*   **Icons**: Lucide React.
+*   **VFX**: canvas-confetti.
+
+### Backend Architecture
+*   **Core Framework**: Django 5.1 & Django REST Framework (DRF)
+*   **Database**: SQLite (development/testing) / PostgreSQL (production staging)
+*   **Auth**: JSON Web Tokens (JWT) using `djangorestframework-simplejwt`
+*   **Filters**: `django-filter` integration for parameters query mapping.
+*   **API Client**: Requests (communicating with Google Gemini 3.5 Flash).
+*   **Testing**: Pytest & Pytest-Django (28 unit tests covering model constraints, auth, XP events, and AI fallback states).
+
+---
+
+## 📦 Project Directory Layout
 
 ```text
 retro-task-manager/
-├── frontend/             # 🎨 The React Frontend (The Screen & Buttons)
+├── frontend/                 # React Frontend
 │   ├── src/
-│   │   ├── components/   # Small UI pieces (cards, buttons, headers)
-│   │   ├── context/      # The "Brain" that remembers if you are logged in
-│   │   ├── pages/        # The screens (Login Page, Dashboard Page)
-│   │   └── index.css     # The styling sheet containing the retro neon colors
-└── backend/              # ⚙️ The Django Backend (The Computer Processor)
-    ├── config/           # General settings, URLs, and connections
-    ├── tasks/            # The custom app containing all Task logic
-    │   ├── models.py     # Defines what a "Task" looks like in the database
-    │   ├── views.py      # The instructions on what to do when a user requests data
-    │   └── serializers.py# Translates database rows into JSON text so React can read it
+│   │   ├── components/       # UI Components (AIAssistant, CategorySidebar, TaskModal, XPBar, etc.)
+│   │   ├── services/         # Axios interceptors (api.js)
+│   │   ├── context/          # Auth context provider
+│   │   ├── pages/            # Core views (DashboardPage, LoginPage, RegisterPage)
+│   │   └── index.css         # Visual Styles (neon tokens, CRT styles, mobile media queries)
+│   └── package.json
+└── backend/                  # Django Backend
+    ├── config/               # Settings & URL configuration
+    ├── tasks/                # Main tasks app
+    │   ├── ai/               # AI Service module (service.py, classifier.py, prompts.py, parser.py)
+    │   ├── models.py         # Category, Task, UserProfile, XPEvent models
+    │   ├── serializers.py    # Serializers & validation methods
+    │   └── views.py          # Viewsets and endpoint logic
+    ├── tests/                # Automated pytest files
+    ├── manage.py
+    └── requirements.txt
 ```
 
 ---
 
-## 🗄️ How the Database Stores Your Data
+## ⚙️ Local Development Setup
 
-The database has two folders (tables) that talk to each other:
+### 1. Backend Configuration
+From the `backend/` directory:
+1.  Initialize a python virtual environment:
+    ```bash
+    python -m venv venv
+    .\venv\Scripts\activate
+    ```
+2.  Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+3.  Create a `.env` file in the `backend/` directory:
+    ```text
+    SECRET_KEY=django-insecure-retro-task-manager-dev-key
+    DEBUG=True
+    ALLOWED_HOSTS=localhost,127.0.0.1
+    CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+    GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+    ```
+4.  Generate database migrations and migrate:
+    ```bash
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
+5.  Start the development server:
+    ```bash
+    python manage.py runserver
+    ```
+    Backend will run at `http://127.0.0.1:8000`.
 
-1. **User Table (`auth_user`)**: Stores user accounts.
-   - Every user gets a unique ID, a username, and an encrypted password.
-2. **Task Table (`tasks_task`)**: Stores all the cards on the board.
-   - Each task has: `title`, `description`, `status` (To Do, In Progress, Done), and `priority`.
-   - **Crucial Link (`owner`)**: Every task points to the specific User ID who created it. This is a **One-to-Many Relationship** (One user can have many tasks, but a task belongs to only one user).
+### 2. Frontend Configuration
+From the `frontend/` directory:
+1.  Install packages:
+    ```bash
+    npm install
+    ```
+2.  Start the Vite dev server:
+    ```bash
+    npm run dev
+    ```
+    Frontend will open at `http://localhost:5173`.
 
----
-
-## 🔑 The Login Flow: How Security Works (JWT)
-
-We use **JSON Web Tokens (JWT)** to secure the app. Here is the step-by-step path:
-
-1. **Sign Up**: You create a new account in React. The backend receives it, encrypts your password, and saves you to the database.
-2. **Log In**: You type your username and password. The backend checks it. If correct, the backend gives the frontend a digital security badge (called an **Access Token**).
-3. **Fetching Tasks**: When React asks the backend, *"Give me my tasks"*, it attaches that security badge in the header of the request.
-4. **Owner Verification**: The backend inspects the badge, identifies who you are, and runs a command equivalent to:
-   `SELECT * FROM tasks WHERE owner = you;`
-   If you try to view another user's tasks, the backend blocks it and sends back a `403 Forbidden` error.
-
----
-
-## 📋 The Kanban Board & Drag-and-Drop
-
-A Kanban board divides your screen into columns: **To Do**, **In Progress**, and **Completed**.
-
-### How Drag-and-Drop Works:
-1. When you grab a task card and move it, React's drag-and-drop listener registers that you pick up card `#15`.
-2. When you release your mouse over the "In Progress" column, React immediately changes the card's column on your screen so the interface feels lightning-fast (this is called **Optimistic UI**).
-3. In the background, React sends a quick message to the backend: *"Hey, update Task #15's status to 'in_progress'"*.
-4. The database updates the row.
-5. **Mobile Friendly**: Drag-and-drop can be hard on touchscreens. To make it work on phones, we also made it so tapping a card moves it to the next column!
-
----
-
-## 🚀 How to Run the App (Quickstart)
-
-If you have downloaded the code, here is how you run it locally:
-
-### 1. Run the Backend (Python)
-Open your terminal and run:
+### 3. Running Backend Tests
+From the `backend/` directory:
 ```bash
-cd backend
-python -m venv venv
-# Activate it (on Windows: .\venv\Scripts\Activate.ps1) (on Mac/Linux: source venv/bin/activate)
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
+.\venv\Scripts\pytest
 ```
-Your backend will start running at `http://127.0.0.1:8000`.
 
-### 2. Run the Frontend (React)
-Open a second terminal window and run:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Your website will open at `http://localhost:5173`. Open it in your browser and start managing your tasks!
+---
+
+## 🛡️ License
+Distributed under the MIT License. See `LICENSE` for more information.

@@ -51,7 +51,6 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
         rec.onresult = (e) => {
           const transcript = e.results[0][0].transcript;
           setInputText(transcript);
-          setStatus('processing');
           handleExecute(transcript, false, true);
         };
         
@@ -152,13 +151,13 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     addLog(isVoice ? `[AUDIO] CAPTURED VOICE TRANSCRIPT: "${voiceText}"` : `[INPUT] TYPED CMD OBJECTIVE: "${voiceText}"`);
 
     const steps = [
-      { delay: 100, pct: 15, text: "[SYSTEM] ALLOCATING RUNTIME MATRIX HEAP..." },
-      { delay: 400, pct: 30, text: "[SYS_CORE] ROUTING PROTOCOL TO COGNITIVE PORT 8000..." },
-      { delay: 850, pct: 45, text: "[AI_GATEWAY] ESTABLISHING SECURE HANDSHAKE WITH GEMINI 3.5 FLASH..." },
-      { delay: 1350, pct: 60, text: "[AI_CORE] PROCESSING Intent Classification (create_task vs create_mission)..." },
-      { delay: 1950, pct: 75, text: "[CLASSIFY] IDENTIFYING Category, Priority AND Target Deadlines..." },
-      { delay: 2450, pct: 88, text: "[SCHEMA] VALIDATING JSON MATCH RULES & OUTPUT SCHEMA SECURITY CODES..." },
-      { delay: 2950, pct: 95, text: "[GAMIFICATION] RESOLVING User Profile XP Event Increments..." },
+      { delay: 50, pct: 15, text: "[SYSTEM] ALLOCATING RUNTIME MATRIX HEAP..." },
+      { delay: 150, pct: 30, text: "[SYS_CORE] ROUTING PROTOCOL TO COGNITIVE PORT 8000..." },
+      { delay: 300, pct: 45, text: "[AI_GATEWAY] ESTABLISHING SECURE HANDSHAKE WITH GEMINI 3.5 FLASH..." },
+      { delay: 450, pct: 60, text: "[AI_CORE] PROCESSING Intent Classification (create_task vs create_mission)..." },
+      { delay: 600, pct: 75, text: "[CLASSIFY] IDENTIFYING Category, Priority AND Target Deadlines..." },
+      { delay: 750, pct: 88, text: "[SCHEMA] VALIDATING JSON MATCH RULES & OUTPUT SCHEMA SECURITY CODES..." },
+      { delay: 900, pct: 95, text: "[GAMIFICATION] RESOLVING User Profile XP Event Increments..." },
     ];
 
     const timers = [];
@@ -187,8 +186,13 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
   };
 
   const handleExecute = async (overridePrompt = null, force = false, isVoice = false) => {
-    const promptToSend = (overridePrompt || inputText).trim();
-    if (!promptToSend) return;
+    const rawPrompt = overridePrompt || inputText;
+    const promptToSend = typeof rawPrompt === 'string' ? rawPrompt.trim() : '';
+    
+    if (!promptToSend) {
+      setStatus('idle');
+      return;
+    }
     
     setOriginalPrompt(promptToSend);
     setStatus('processing');
@@ -207,7 +211,7 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
       logController.complete(true, `Intent Classified: '${data.intent}'`);
       
       // Delay transition to display log details
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       setAiResult(data);
       setStatus('result');

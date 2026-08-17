@@ -8,8 +8,8 @@ from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from .models import Task, MissionProposal, UserProfile
-from .serializers import UserRegistrationSerializer, UserSerializer, TaskSerializer, MissionProposalSerializer, UserProfileSerializer
+from .models import Task, MissionProposal, UserProfile, Category, get_user_categories
+from .serializers import UserRegistrationSerializer, UserSerializer, TaskSerializer, MissionProposalSerializer, UserProfileSerializer, CategorySerializer
 from .permissions import IsOwner
 from .filters import TaskFilter
 from .ai.classifier import AIClassifier
@@ -222,3 +222,26 @@ class UserProfileView(APIView):
     def get(self, request):
         profile, created = UserProfile.objects.get_or_create(user=request.user)
         return Response(UserProfileSerializer(profile).data, status=status.HTTP_200_OK)
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Category.objects.none()
+        get_user_categories(self.request.user)
+        return Category.objects.filter(owner=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.key == 'other':
+            return Response(
+                {"detail": "SYSTEM_ERROR: The 'other' category cannot be deleted."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        Task.objects.filter(owner=request.user, category=instance.key).update(category='other')
+        return super().destroy(request, *args, **kwargs)

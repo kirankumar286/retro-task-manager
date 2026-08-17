@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, AlertOctagon } from 'lucide-react';
 
-const TaskModal = ({ isOpen, onClose, onSave, taskToEdit }) => {
+const TaskModal = ({ isOpen, onClose, onSave, taskToEdit, categories }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -134,15 +134,11 @@ const TaskModal = ({ isOpen, onClose, onSave, taskToEdit }) => {
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="retro-select"
               >
-                <option value="work">💼 Work</option>
-                <option value="personal">👤 Personal</option>
-                <option value="groceries">🛒 Groceries</option>
-                <option value="errands">🏃 Errands</option>
-                <option value="study">📚 Study</option>
-                <option value="health">❤️ Health</option>
-                <option value="finance">💰 Finance</option>
-                <option value="home">🏠 Home</option>
-                <option value="other">📦 Other</option>
+                {categories && categories.map((cat) => (
+                  <option key={cat.key} value={cat.key}>
+                    {cat.icon} {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

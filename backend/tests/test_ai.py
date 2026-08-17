@@ -148,3 +148,49 @@ class TestAIEndpoints:
         
         profile.refresh_from_db()
         assert profile.xp == 25
+
+    def test_categories_crud_and_validation(self, authenticated_client_a, user_a):
+        # Fetching categories initializes defaults
+        url = reverse('category-list')
+        response = authenticated_client_a.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        results = response.data
+        # Should be exactly 8 categories
+        assert len(results) == 8
+        keys = [item['key'] for item in results]
+        assert 'groceries' in keys
+        assert 'errands' not in keys # Errands is merged!
+        
+        # Creating a category
+        create_payload = {'name': 'Fitness', 'icon': '💪'}
+        create_response = authenticated_client_a.post(url, create_payload)
+        assert create_response.status_code == status.HTTP_201_CREATED
+        assert create_response.data['key'] == 'fitness'
+        
+        # Pinning a category
+        detail_url = reverse('category-detail', kwargs={'pk': create_response.data['id']})
+        patch_response = authenticated_client_a.patch(detail_url, {'is_pinned': True})
+        assert patch_response.status_code == status.HTTP_200_OK
+        assert patch_response.data['is_pinned'] is True
+        
+        # Task validation: check if task is saved with fitness category
+        from tasks.models import Category
+        task_url = reverse('task-list')
+        task_payload = {'title': 'Workout today', 'category': 'fitness'}
+        task_response = authenticated_client_a.post(task_url, task_payload)
+        assert task_response.status_code == status.HTTP_201_CREATED
+        
+        # Deleting category fallback: verify it falls back to 'other'
+        delete_response = authenticated_client_a.delete(detail_url)
+        assert delete_response.status_code == status.HTTP_204_NO_CONTENT
+        
+        # Verify task category is now 'other'
+        task_detail_url = reverse('task-detail', kwargs={'pk': task_response.data['id']})
+        task_get = authenticated_client_a.get(task_detail_url)
+        assert task_get.data['category'] == 'other'
+        
+        # Attempt to delete standard category 'other' should be blocked
+        other_category = Category.objects.get(owner=user_a, key='other')
+        other_detail_url = reverse('category-detail', kwargs={'pk': other_category.id})
+        delete_other = authenticated_client_a.delete(other_detail_url)
+        assert delete_other.status_code == status.HTTP_400_BAD_REQUEST

@@ -2,11 +2,12 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import RegisterView, CustomTokenObtainPairView, TaskViewSet, MissionProposalViewSet, AIChatView, UserProfileView
+from .views import RegisterView, CustomTokenObtainPairView, TaskViewSet, MissionProposalViewSet, AIChatView, UserProfileView, CategoryViewSet
 
 router = DefaultRouter()
 router.register(r'tasks', TaskViewSet, basename='task')
 router.register(r'ai/proposals', MissionProposalViewSet, basename='proposal')
+router.register(r'categories', CategoryViewSet, basename='category')
 
 urlpatterns = [
     # Auth Endpoints

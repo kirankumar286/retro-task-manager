@@ -41,6 +41,51 @@ const DashboardPage = () => {
   const [achievementsActive, setAchievementsActive] = useState(false);
   const [approvals, setApprovals] = useState([]);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await api.get('/api/categories/');
+      const data = response.data.results || response.data;
+      setCategories(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to load categories', err);
+    }
+  }, []);
+
+  const handleAddCategory = async (name, icon) => {
+    try {
+      await api.post('/api/categories/', { name, icon });
+      await fetchCategories();
+      return true;
+    } catch (err) {
+      console.error('Failed to add category', err);
+      alert('Error creating category. Make sure it has a unique name.');
+      return false;
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    try {
+      await api.delete(`/api/categories/${id}/`);
+      setFilters(prev => prev.category === 'all' ? prev : { ...prev, category: 'all' });
+      await fetchCategories();
+      await fetchTasks();
+    } catch (err) {
+      console.error('Failed to delete category', err);
+      alert('Error deleting category.');
+    }
+  };
+
+  const handleTogglePinCategory = async (id, isPinned) => {
+    try {
+      await api.patch(`/api/categories/${id}/`, { is_pinned: isPinned });
+      await fetchCategories();
+    } catch (err) {
+      console.error('Failed to toggle pin category', err);
+      alert('Error pinning category.');
+    }
+  };
 
   // Fetch Tasks with query params
   const fetchTasks = useCallback(async () => {
@@ -86,7 +131,8 @@ const DashboardPage = () => {
 
   useEffect(() => {
     fetchProposals();
-  }, [fetchProposals]);
+    fetchCategories();
+  }, [fetchProposals, fetchCategories]);
 
   const handleXPAward = (xp, leveledUp) => {
     confetti({
@@ -278,6 +324,7 @@ const DashboardPage = () => {
         
         {/* Left Category Sidebar */}
         <CategorySidebar
+          categories={categories}
           selectedCategory={filters.category}
           onSelectCategory={handleSelectCategory}
           selectedSmartFilter={filters.smartFilter}
@@ -287,6 +334,9 @@ const DashboardPage = () => {
           onSelectApprovals={handleSelectApprovals}
           selectedAchievements={achievementsActive}
           onSelectAchievements={handleSelectAchievements}
+          onAddCategory={handleAddCategory}
+          onDeleteCategory={handleDeleteCategory}
+          onTogglePinCategory={handleTogglePinCategory}
           isOpen={mobileSidebarOpen}
           onClose={() => setMobileSidebarOpen(false)}
         />
@@ -506,6 +556,7 @@ const DashboardPage = () => {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveTask}
         taskToEdit={taskToEdit}
+        categories={categories}
       />
 
       {/* Delete Confirmation Modal */}

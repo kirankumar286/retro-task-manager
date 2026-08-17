@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils import timezone
-from .models import Task, MissionProposal, UserProfile
+from .models import Task, MissionProposal, UserProfile, Category
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -56,6 +56,17 @@ class TaskSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Due date cannot be in the past on creation.")
         return value
 
+    def validate_category(self, value):
+        if not value:
+            return 'other'
+        request = self.context.get('request')
+        if request and request.user:
+            from .models import get_user_categories
+            valid_keys = get_user_categories(request.user).values_list('key', flat=True)
+            if value not in valid_keys and value != 'other':
+                return 'other'
+        return value
+
 class MissionProposalSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
 
@@ -75,3 +86,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
     def get_next_level_xp(self, obj):
         next_lvl = obj.level + 1
         return (next_lvl - 1) * 100 + (next_lvl - 2) * (next_lvl - 1) * 25
+
+class CategorySerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+
+    class Meta:
+        model = Category
+        fields = ('id', 'owner', 'name', 'key', 'icon', 'is_pinned', 'created_at')
+        read_only_fields = ('id', 'owner', 'key', 'created_at')
+
+    def validate_name(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Category name cannot be empty.")
+        return value.strip()

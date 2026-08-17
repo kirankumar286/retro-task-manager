@@ -33,7 +33,7 @@ class Task(models.Model):
     description = models.TextField(blank=True, default='')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='medium')
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='other')
+    category = models.CharField(max_length=50, default='other')
     due_date = models.DateField(null=True, blank=True)
     due_time = models.TimeField(null=True, blank=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')
@@ -205,3 +205,46 @@ def save_user_profile(sender, instance, **kwargs):
         UserProfile.objects.create(user=instance)
     else:
         instance.profile.save()
+
+from django.utils.text import slugify
+
+class Category(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categories')
+    name = models.CharField(max_length=50)
+    key = models.SlugField(max_length=50)
+    icon = models.CharField(max_length=10, default='📦')
+    is_pinned = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-is_pinned', 'name']
+        unique_together = ('owner', 'key')
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.key}) - Pinned: {self.is_pinned} (Owner: {self.owner.username})"
+
+def get_user_categories(user):
+    categories = Category.objects.filter(owner=user)
+    if not categories.exists():
+        # Initialize default categories (groceries and errands merged into groceries)
+        defaults = [
+            {'key': 'work', 'name': 'Work', 'icon': '💼'},
+            {'key': 'personal', 'name': 'Personal', 'icon': '👤'},
+            {'key': 'groceries', 'name': 'Groceries', 'icon': '🛒'},
+            {'key': 'study', 'name': 'Study', 'icon': '📚'},
+            {'key': 'health', 'name': 'Health', 'icon': '❤️'},
+            {'key': 'finance', 'name': 'Finance', 'icon': '💰'},
+            {'key': 'home', 'name': 'Home', 'icon': '🏠'},
+            {'key': 'other', 'name': 'Other', 'icon': '📦'},
+        ]
+        Category.objects.bulk_create([
+            Category(owner=user, key=item['key'], name=item['name'], icon=item['icon'])
+            for item in defaults
+        ])
+        categories = Category.objects.filter(owner=user)
+    return categories

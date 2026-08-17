@@ -18,6 +18,13 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
   const [recognition, setRecognition] = useState(null);
   const [recognitionType, setRecognitionType] = useState(null);
 
+  const inputTextRef = useRef(inputText);
+  const baseTextRef = useRef('');
+
+  useEffect(() => {
+    inputTextRef.current = inputText;
+  }, [inputText]);
+
   const logTerminalRef = useRef(null);
 
   useEffect(() => {
@@ -76,6 +83,7 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
         recType.onstart = () => {
           setStatus('listening_to_type');
           setErrorMsg('');
+          baseTextRef.current = inputTextRef.current;
         };
         
         recType.onerror = (e) => {
@@ -89,18 +97,13 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
         };
         
         recType.onresult = (e) => {
-          let interimTranscript = '';
-          let finalTranscript = '';
-          for (let i = e.resultIndex; i < e.results.length; ++i) {
+          let finalSessionText = '';
+          for (let i = 0; i < e.results.length; ++i) {
             if (e.results[i].isFinal) {
-              finalTranscript += e.results[i][0].transcript + ' ';
-            } else {
-              interimTranscript += e.results[i][0].transcript;
+              finalSessionText += e.results[i][0].transcript + ' ';
             }
           }
-          if (finalTranscript) {
-            setInputText(prev => prev + finalTranscript);
-          }
+          setInputText(baseTextRef.current + finalSessionText);
         };
         
         setRecognitionType(recType);

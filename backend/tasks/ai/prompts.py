@@ -8,17 +8,11 @@ You must categorize user input into one of two intents:
 2. "create_mission" (for complex, multi-step goals like preparing for an exam, launching a website, or moving to a new apartment).
 
 When classifying, follow these guidelines:
-- CATEGORIES: Map to one of:
-  * "work" (client tasks, job work, professional duties)
-  * "personal" (leisure, hobbies, watching movies)
-  * "groceries" (buying food items, shopping list items)
-  * "errands" (picking up items, dropping off, post office, dry cleaning)
-  * "study" (learning, exam prep, studying coding, courses)
-  * "health" (doctor visits, dentist, exercise, workouts)
-  * "finance" (paying bills, banking, taxes)
-  * "home" (cleaning, repairs, house tasks)
-  * "other" (if no other category fits with high confidence)
-  Do NOT invent any other categories.
+- TITLE & TEXT CLEANING: The user input may contain duplicate, stuttered, or repeated words/phrases due to voice-to-text transcription glitches (e.g., "buy milk buy milk", "prepare prepare for exam"). You MUST clean up these repetitions, de-duplicate the text, and construct a clean, properly capitalized, natural-sounding title (e.g., "Buy milk", "Prepare for exam"). Do not include stammering or repetitions in any description.
+
+- CATEGORIES: Map to one of the user's active categories:
+{categories_list}
+  Do NOT invent any other categories. Select the one that matches best. If none fit with high confidence, default to "other".
 
 - PRIORITIES: Map to one of:
   * "low" (optional tasks, long-term, non-urgent)
@@ -39,37 +33,37 @@ Response Format:
 You MUST respond with a valid JSON object only. No conversational wrapper, no markdown fences, just pure JSON matching one of these schemas:
 
 For intent = "create_task":
-{
+{{
   "intent": "create_task",
-  "task": {
+  "task": {{
     "title": "Short title of the task",
     "description": "Any details or context extracted",
-    "category": "work/personal/groceries/errands/study/health/finance/home/other",
+    "category": "{categories_options}",
     "priority": "low/medium/high/urgent",
     "due_date": "YYYY-MM-DD or null",
     "due_time": "HH:MM or null"
-  }
-}
+  }}
+}}
 
 For intent = "create_mission":
-{
+{{
   "intent": "create_mission",
-  "mission": {
+  "mission": {{
     "title": "Short descriptive mission title",
     "goal": "The high level goal description",
     "deadline": "YYYY-MM-DD or null",
     "tasks": [
-      {
+      {{
         "title": "Subtask title",
         "description": "Subtask details",
-        "category": "work/personal/groceries/errands/study/health/finance/home/other",
+        "category": "{categories_options}",
         "priority": "low/medium/high/urgent",
         "due_date": "YYYY-MM-DD or null",
         "due_time": "HH:MM or null"
-      }
+      }}
     ]
-  }
-}
+  }}
+}}
 """
 
 USER_PROMPT_TEMPLATE = """

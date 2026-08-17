@@ -32,8 +32,22 @@ class AIService:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
         
-        # Construct system prompt with date context
-        sys_prompt = SYSTEM_PROMPT.replace('{current_reference}', current_reference)
+        # Get active user categories dynamically
+        active_categories = []
+        if user:
+            from tasks.models import get_user_categories
+            active_categories = list(get_user_categories(user).values_list('key', flat=True))
+        
+        if not active_categories:
+            active_categories = ["work", "personal", "groceries", "study", "health", "finance", "home", "other"]
+            
+        categories_list = "\n".join([f'  * "{cat}"' for cat in active_categories])
+        categories_options = "/".join(active_categories)
+        
+        # Construct system prompt with date context and dynamic categories
+        sys_prompt = SYSTEM_PROMPT.replace('{current_reference}', current_reference)\
+                                   .replace('{categories_list}', categories_list)\
+                                   .replace('{categories_options}', categories_options)
         user_prompt = USER_PROMPT_TEMPLATE.replace('{user_input}', user_input)
         
         payload = {

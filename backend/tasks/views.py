@@ -119,11 +119,14 @@ class MissionProposalViewSet(viewsets.ModelViewSet):
         created_tasks = []
         for task_info in proposal.proposed_tasks:
             # Create actual tasks in the database
+            category_slug = task_info.get('category', 'other')
+            if not Category.objects.filter(owner=request.user, key=category_slug).exists():
+                category_slug = 'other'
             task = Task.objects.create(
                 owner=request.user,
                 title=task_info.get('title', 'AI Subtask'),
                 description=task_info.get('description', ''),
-                category=task_info.get('category', 'other'),
+                category=category_slug,
                 priority=task_info.get('priority', 'medium'),
                 status='todo',
                 due_date=task_info.get('due_date'),
@@ -183,11 +186,14 @@ class AIChatView(APIView):
                 }, status=status.HTTP_200_OK)
                 
             # Create task directly
+            category_slug = task_info.get('category', 'other')
+            if not Category.objects.filter(owner=request.user, key=category_slug).exists():
+                category_slug = 'other'
             task = Task.objects.create(
                 owner=request.user,
                 title=title,
                 description=task_info.get('description', ''),
-                category=task_info.get('category', 'other'),
+                category=category_slug,
                 priority=task_info.get('priority', 'medium'),
                 status='todo',
                 due_date=task_info.get('due_date'),
@@ -215,11 +221,14 @@ class AIChatView(APIView):
                 proposal.status = 'approved'
                 proposal.save()
                 for task_info in proposal.proposed_tasks:
+                    category_slug = task_info.get('category', 'other')
+                    if not Category.objects.filter(owner=request.user, key=category_slug).exists():
+                        category_slug = 'other'
                     Task.objects.create(
                         owner=request.user,
                         title=task_info.get('title', 'AI Subtask'),
                         description=task_info.get('description', ''),
-                        category=task_info.get('category', 'other'),
+                        category=category_slug,
                         priority=task_info.get('priority', 'medium'),
                         status='todo',
                         due_date=task_info.get('due_date'),

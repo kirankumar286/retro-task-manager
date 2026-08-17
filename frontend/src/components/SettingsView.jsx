@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, AlertTriangle, ShieldCheck, Cpu } from 'lucide-react';
+import { Settings, Save, AlertTriangle, ShieldCheck, Cpu, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 

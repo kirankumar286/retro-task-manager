@@ -33,13 +33,6 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     }
   }, [logLines]);
 
-  useEffect(() => {
-    if (isOpen) {
-      resetAssistant();
-    } else {
-      handleAbort();
-    }
-  }, [isOpen]);
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -281,6 +274,14 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     setErrorMsg('');
     setAiResult(null);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      resetAssistant();
+    } else {
+      handleAbort();
+    }
+  }, [isOpen, resetAssistant, handleAbort]);
 
   return (
     <div className="retro-modal-backdrop" onClick={onClose}>

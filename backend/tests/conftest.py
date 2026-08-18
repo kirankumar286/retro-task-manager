@@ -10,19 +10,25 @@ def api_client():
 
 @pytest.fixture
 def user_a(db):
-    return User.objects.create_user(
+    user = User.objects.create_user(
         username='usera',
         email='usera@example.com',
         password='Password123!'
     )
+    from tasks.models import get_user_categories
+    get_user_categories(user)
+    return user
 
 @pytest.fixture
 def user_b(db):
-    return User.objects.create_user(
+    user = User.objects.create_user(
         username='userb',
         email='userb@example.com',
         password='Password123!'
     )
+    from tasks.models import get_user_categories
+    get_user_categories(user)
+    return user
 
 @pytest.fixture
 def authenticated_client_a(api_client, user_a):

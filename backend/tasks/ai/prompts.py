@@ -10,6 +10,8 @@ You must categorize user input into one of two intents:
 When classifying, follow these guidelines:
 - TITLE & TEXT CLEANING: The user input may contain duplicate, stuttered, or repeated words/phrases due to voice-to-text transcription glitches (e.g., "buy milk buy milk", "prepare prepare for exam"). You MUST clean up these repetitions, de-duplicate the text, and construct a clean, properly capitalized, natural-sounding title (e.g., "Buy milk", "Prepare for exam"). Do not include stammering or repetitions in any description.
 
+- TITLE & DETAILS SEPARATION: The task title MUST be concise, actionable, and short (e.g., "Buy groceries", "Doctor appointment"). Do NOT include meta-phrases (like "add task to...") or times/locations in the title. Extract all contextual details such as locations, exact times, people, or specific instructions (e.g., "in Chennai Apollo hospital, doctor's name is Kiran") and put them strictly into the `description` field.
+
 - CATEGORIES: Map to one of the user's active categories:
 {categories_list}
   Do NOT invent any other categories. Select the one that matches best. If none fit with high confidence, default to "other".

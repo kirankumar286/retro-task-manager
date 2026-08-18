@@ -165,17 +165,22 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
       setLogLines(prev => [...prev, `[${elapsed}s] ${text}`]);
     };
 
-    addLog("[SYSTEM] INITIALIZING CORE AUDIO PIPELINE ENGINE...");
-    addLog(isVoice ? `[AUDIO] CAPTURED VOICE TRANSCRIPT: "${voiceText}"` : `[INPUT] TYPED CMD OBJECTIVE: "${voiceText}"`);
+    let baseDelay = 0;
+    if (isVoice) {
+      addLog("[SYSTEM] AUDIO STREAM FINALIZED. BUFFERING FOR 1 SECOND...");
+      baseDelay = 1000;
+    } else {
+      addLog(`[INPUT] TYPED CMD OBJECTIVE: "${voiceText}"`);
+    }
 
     const steps = [
-      { delay: 50, pct: 15, text: "[SYSTEM] ALLOCATING RUNTIME MATRIX HEAP..." },
-      { delay: 150, pct: 30, text: "[SYS_CORE] ROUTING PROTOCOL TO COGNITIVE PORT 8000..." },
-      { delay: 300, pct: 45, text: "[AI_GATEWAY] ESTABLISHING SECURE HANDSHAKE WITH GEMINI 3.5 FLASH..." },
-      { delay: 450, pct: 60, text: "[AI_CORE] PROCESSING Intent Classification (create_task vs create_mission)..." },
-      { delay: 600, pct: 75, text: "[CLASSIFY] IDENTIFYING Category, Priority AND Target Deadlines..." },
-      { delay: 750, pct: 88, text: "[SCHEMA] VALIDATING JSON MATCH RULES & OUTPUT SCHEMA SECURITY CODES..." },
-      { delay: 900, pct: 95, text: "[GAMIFICATION] RESOLVING User Profile XP Event Increments..." },
+      { delay: baseDelay + 50, pct: 15, text: "[SYSTEM] ALLOCATING RUNTIME MATRIX HEAP..." },
+      { delay: baseDelay + 400, pct: 30, text: "[SYS_CORE] ROUTING PROTOCOL TO COGNITIVE PORT 8000..." },
+      { delay: baseDelay + 700, pct: 45, text: "[AI_GATEWAY] ESTABLISHING SECURE HANDSHAKE WITH GEMINI NEURAL NET..." },
+      { delay: baseDelay + 1000, pct: 60, text: "[AI_CORE] PROCESSING Intent Classification (create_task vs create_mission)..." },
+      { delay: baseDelay + 1400, pct: 75, text: "[CLASSIFY] IDENTIFYING Category, Priority AND Target Deadlines..." },
+      { delay: baseDelay + 1700, pct: 88, text: "[SCHEMA] VALIDATING JSON MATCH RULES & OUTPUT SCHEMA SECURITY CODES..." },
+      { delay: baseDelay + 2000, pct: 95, text: "[GAMIFICATION] RESOLVING User Profile XP Event Increments..." },
     ];
 
     const timers = [];
@@ -227,12 +232,16 @@ const AIAssistant = ({ isOpen, onClose, onTaskCreated, onMissionPlanned }) => {
     const logController = startLogSimulation(isVoice, promptToSend);
     
     try {
-      const response = await api.post('/api/ai/classify/', {
-        prompt: promptToSend,
-        force: force
-      }, {
-        signal: abortController.signal
-      });
+      const minAnimationDelay = isVoice ? 3000 : 2000;
+      const [response] = await Promise.all([
+        api.post('/api/ai/classify/', {
+          prompt: promptToSend,
+          force: force
+        }, {
+          signal: abortController.signal
+        }),
+        new Promise(resolve => setTimeout(resolve, minAnimationDelay))
+      ]);
       
       const data = response.data;
       logController.complete(true, `Intent Classified: '${data.intent}'`);

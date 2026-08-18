@@ -24,12 +24,13 @@ When classifying, follow these guidelines:
   Be conservative and do not make everything high or urgent.
 
 - DEADLINES:
-  Extract due_date (format: YYYY-MM-DD) and due_time (format: HH:MM).
+  Extract due_date (format: YYYY-MM-DD) and due_time (format: HH:MM in 24-hour military time).
   Compute them relative to the current reference date and time provided by the user context:
   Reference Date/Time: {current_reference}
-  - If a specific date or weekday is given (e.g. "tomorrow", "Friday", "this weekend", "next Monday"), calculate the actual date YYYY-MM-DD relative to the Reference Date/Time.
-  - If a time is given (e.g. "by 4 PM", "in two hours"), calculate the actual target time in 24-hour format HH:MM.
+  - If a specific date or weekday is given (e.g. "tomorrow", "Friday"), calculate the actual exact date YYYY-MM-DD. Pay extremely close attention to the word "tomorrow".
+  - If a time is given (e.g. "at 10 pm", "by 4 PM", "in two hours"), calculate the actual target time in 24-hour format HH:MM. Pay very close attention to AM and PM! For example, "10 pm" MUST be converted to "22:00", not "10:00".
   - If no deadline is specified, set due_date to null and due_time to null. Do not invent deadlines.
+  - CRITICAL RULE: NEVER put the date or time in the `title` or `description`. The parsed date and time belong strictly and ONLY in the `due_date` and `due_time` JSON fields.
 
 Response Format:
 You MUST respond with a valid JSON object only. No conversational wrapper, no markdown fences, just pure JSON matching one of these schemas:
@@ -44,6 +45,21 @@ For intent = "create_task":
     "priority": "low/medium/high/urgent",
     "due_date": "YYYY-MM-DD or null",
     "due_time": "HH:MM or null"
+  }}
+}}
+
+Example of a correct `create_task` extraction:
+User: "i have driving class tomorow at 10 pm"
+If today is 2026-08-18:
+{{
+  "intent": "create_task",
+  "task": {{
+    "title": "Driving class",
+    "description": "",
+    "category": "study",
+    "priority": "medium",
+    "due_date": "2026-08-19",
+    "due_time": "22:00"
   }}
 }}
 
